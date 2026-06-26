@@ -64,6 +64,10 @@ Antes de subir, envías por WhatsApp una tarjeta con placa + descripción verifi
 backend/        API FastAPI (proxy json.pe + scoring + OCR + QR + contratos)
 mobile/         App Expo (pasajero / comprador / conductor)
 docs/
+  ARQUITECTURA.md                        arquitectura del sistema
+  API.md                                 contrato HTTP del backend
+  DECISIONES.md                          decisiones de diseño (ADR)
+  SEGURIDAD.md                           seguridad y privacidad
   FUENTES_DATOS.md                       fuentes oficiales del Estado
   DEMO_SCRIPT.md                         guion de demo
   superpowers/plans/                     plan de implementación (TDD, paso a paso)
@@ -96,5 +100,10 @@ EXPO_PUBLIC_API_URL=http://<tu-IP-LAN>:8000 npx expo start
 
 ## Documentación
 
-- [Plan de implementación](docs/superpowers/plans/2026-06-26-subeseguro.md)
+- [Arquitectura](docs/ARQUITECTURA.md)
+- [API del backend](docs/API.md)
+- [Decisiones de diseño (ADR)](docs/DECISIONES.md)
+- [Seguridad y privacidad](docs/SEGURIDAD.md)
 - [Fuentes de datos del Estado](docs/FUENTES_DATOS.md)
+- [Guion de demo](docs/DEMO_SCRIPT.md)
+- [Plan de implementación](docs/superpowers/plans/2026-06-26-subeseguro.md)
