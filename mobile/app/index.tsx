@@ -55,6 +55,11 @@ export default function Pasajero() {
   };
 
   const tomarFoto = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      setError('Se necesita permiso de cámara para escanear la placa.');
+      return;
+    }
     const res = await ImagePicker.launchCameraAsync({ quality: 0.6 });
     if (res.canceled || !res.assets?.[0]) return;
     setCargando(true);
