@@ -18,7 +18,7 @@ import { ShareButton } from '../src/components/ShareButton';
 import { EmptyState } from '../src/components/EmptyState';
 import { verificarPasajero, verificarPorReportId, type Veredicto } from '../src/api/verificar';
 import { ocrPlaca } from '../src/api/ocr';
-import { guardarVerificacion } from '../src/lib/history';
+import { guardarVerificacion, actualizarMatch } from '../src/lib/history';
 import { useLocalSearchParams } from 'expo-router';
 
 export default function Pasajero() {
@@ -290,7 +290,13 @@ export default function Pasajero() {
               <VehicleCard
                 vehicle={{ marca: vMarca, modelo: vModelo, color: vColor }}
                 match={vehicleMatch}
-                onMatch={setVehicleMatch}
+                onMatch={(v) => {
+                  setVehicleMatch(v);
+                  actualizarMatch(veredicto.placa, v);
+                  Haptics.impactAsync(
+                    v ? Haptics.ImpactFeedbackStyle.Medium : Haptics.ImpactFeedbackStyle.Heavy,
+                  );
+                }}
               />
             )}
             <CheckList checks={veredicto.checks} />

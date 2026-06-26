@@ -10,6 +10,7 @@ export interface HistorialEntry {
   color: 'verde' | 'ambar' | 'rojo';
   resumen: string;
   fechaIso: string;
+  match?: boolean;
 }
 
 function fromVeredicto(v: Veredicto): HistorialEntry {
@@ -40,6 +41,18 @@ export async function cargarHistorial(): Promise<HistorialEntry[]> {
     return JSON.parse(raw) as HistorialEntry[];
   } catch {
     return [];
+  }
+}
+
+export async function actualizarMatch(placa: string, match: boolean): Promise<void> {
+  try {
+    const existing = await cargarHistorial();
+    const updated = existing.map((e) =>
+      e.placa === placa ? { ...e, match } : e,
+    );
+    await AsyncStorage.setItem(KEY, JSON.stringify(updated));
+  } catch {
+    // silently ignore
   }
 }
 
