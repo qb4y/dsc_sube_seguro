@@ -1,0 +1,9 @@
+streamlit
+easyocr
+requests
+beautifulsoup4
+playwright
+pillow
+qrcode[pil]
+anthropic
+python-dotenv
