@@ -1,7 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Animated, ScrollView, View, Text, TextInput, Image, StyleSheet } from 'react-native';
+import { Alert, Animated, ScrollView, TouchableOpacity, View, Text, TextInput, Image, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import ViewShot, { type ViewShotRef } from 'react-native-view-shot';
+import * as MediaLibrary from 'expo-media-library';
+import * as Sharing from 'expo-sharing';
 import { tokens, spacing, radius, type, fontMono } from '../src/lib/tokens';
 import { useFadeSlideIn, useScaleBounce, useBreathingGlow, useFloat } from '../src/lib/animations';
 import { GlassCard } from '../src/components/GlassCard';
@@ -18,8 +21,10 @@ export default function Conductor() {
   const [dni, setDni] = useState('');
   const [qrUrl, setQrUrl] = useState('');
   const [cargando, setCargando] = useState(false);
+  const [descargando, setDescargando] = useState(false);
   const [error, setError] = useState('');
   const [focused, setFocused] = useState(false);
+  const exportRef = useRef<ViewShotRef>(null);
 
   const heroAnim = useFadeSlideIn(0);
   const cardAnim = useFadeSlideIn(100, 32);
@@ -58,6 +63,30 @@ export default function Conductor() {
       setError('No pudimos generar el QR. Revisa tu conexión.');
     } finally {
       setCargando(false);
+    }
+  };
+
+  const descargar = async () => {
+    if (!exportRef.current) return;
+    setDescargando(true);
+    try {
+      const uri = await exportRef.current!.capture!();
+      const canShare = await Sharing.isAvailableAsync();
+      if (canShare) {
+        await Sharing.shareAsync(uri, { mimeType: 'image/png', dialogTitle: 'Compartir QR conductor' });
+      } else {
+        const { status } = await MediaLibrary.requestPermissionsAsync();
+        if (status !== 'granted') {
+          Alert.alert('Permiso requerido', 'Necesitamos acceso a tu galería para guardar la imagen.');
+          return;
+        }
+        await MediaLibrary.saveToLibraryAsync(uri);
+        Alert.alert('¡Guardado!', 'La imagen se guardó en tu galería.');
+      }
+    } catch {
+      Alert.alert('Error', 'No se pudo exportar el QR.');
+    } finally {
+      setDescargando(false);
     }
   };
 
@@ -139,34 +168,60 @@ export default function Conductor() {
         {/* QR — scale bounce entrance + floating */}
         {qrUrl !== '' && (
           <Animated.View style={{ transform: [{ scale: qrScale }], opacity: qrOpacity }}>
-            <GlassCard style={styles.qrCard} borderRadius={radius.xxl}>
-              {/* Header */}
-              <View style={styles.qrHeader}>
-                <View style={styles.qrHeaderIcon}>
-                  <Ionicons name="checkmark-circle" size={18} color={tokens.colorSuccess} />
-                </View>
-                <Text style={styles.qrHeaderText}>QR listo para mostrar</Text>
-              </View>
-
-              <View style={styles.qrSep} />
-
-              {/* QR image — floating */}
-              <View style={styles.qrImageContainer}>
-                <Animated.View style={[styles.qrGradFrame, { backgroundColor: tokens.colorBrandTint, borderColor: tokens.colorBrandBorder }, qrFloatAnim]}>
-                  <View style={styles.qrImageWrap}>
-                    <Image style={styles.qr} source={{ uri: qrUrl }} resizeMode="contain" />
+            {/* Capturable export card */}
+            <ViewShot ref={exportRef} options={{ format: 'png', quality: 1 }}>
+              <View style={styles.exportCard}>
+                {/* Brand header */}
+                <View style={styles.exportHeader}>
+                  <View style={styles.exportLogo}>
+                    <Ionicons name="shield-checkmark" size={18} color={tokens.colorBrand} />
                   </View>
-                </Animated.View>
-              </View>
+                  <Text style={styles.exportAppName}>SubeSeguro</Text>
+                  <View style={styles.exportBadge}>
+                    <Ionicons name="checkmark-circle" size={12} color={tokens.colorSuccess} />
+                    <Text style={styles.exportBadgeText}>Verificado</Text>
+                  </View>
+                </View>
 
-              {/* Meta */}
-              <View style={styles.qrMeta}>
-                <Text style={styles.qrPlaca}>{placa}</Text>
-                <Text style={styles.qrHint}>
-                  Muestra este QR a tus pasajeros para que verifiquen tu vehículo en tiempo real.
+                {/* Separator */}
+                <View style={styles.exportSep} />
+
+                {/* Plate */}
+                <Text style={styles.exportLabel}>PLACA DEL VEHÍCULO</Text>
+                <Text style={styles.exportPlaca}>{placa}</Text>
+
+                {/* QR */}
+                <View style={styles.exportQrWrap}>
+                  <Image style={styles.exportQr} source={{ uri: qrUrl }} resizeMode="contain" />
+                </View>
+
+                {/* Instructions */}
+                <Text style={styles.exportInstruction}>
+                  Escanea para verificar el vehículo
                 </Text>
+
+                {/* Footer */}
+                <View style={styles.exportSep} />
+                <Text style={styles.exportFooter}>subeseguro.pe · Verificación en tiempo real</Text>
               </View>
-            </GlassCard>
+            </ViewShot>
+
+            {/* Download button — outside ViewShot so not captured */}
+            <TouchableOpacity
+              style={[styles.downloadBtn, descargando && styles.downloadBtnDisabled]}
+              onPress={descargar}
+              disabled={descargando}
+              activeOpacity={0.75}
+            >
+              <Ionicons
+                name={descargando ? 'hourglass-outline' : 'download-outline'}
+                size={18}
+                color={tokens.colorBrand}
+              />
+              <Text style={styles.downloadBtnText}>
+                {descargando ? 'Exportando…' : 'Descargar / Compartir'}
+              </Text>
+            </TouchableOpacity>
           </Animated.View>
         )}
       </ScrollView>
@@ -243,36 +298,81 @@ const styles = StyleSheet.create({
   },
   errorText: { ...type.subheadline, color: tokens.colorDanger, flex: 1 },
 
-  qrCard: { marginBottom: spacing.lg },
-  qrHeader: {
-    flexDirection: 'row', alignItems: 'center', gap: 10,
-    paddingHorizontal: 16, paddingVertical: 14,
+  // Branded export card
+  exportCard: {
+    backgroundColor: '#0A0A0F',
+    borderRadius: radius.xxl,
+    borderWidth: 1,
+    borderColor: tokens.colorBrandBorder,
+    overflow: 'hidden',
+    marginBottom: 12,
+    shadowColor: tokens.colorBrand,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.25,
+    shadowRadius: 24,
   },
-  qrHeaderIcon: {
-    width: 30, height: 30, borderRadius: 8,
-    backgroundColor: 'rgba(48,209,88,0.14)',
+  exportHeader: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    paddingHorizontal: 20, paddingVertical: 16,
+    backgroundColor: 'rgba(47,214,198,0.07)',
+  },
+  exportLogo: {
+    width: 32, height: 32, borderRadius: 10,
+    backgroundColor: tokens.colorBrandTint,
+    borderWidth: 0.5, borderColor: tokens.colorBrandBorder,
     alignItems: 'center', justifyContent: 'center',
   },
-  qrHeaderText: { ...type.headline, color: tokens.colorSuccess },
-  qrSep: { height: 0.5, backgroundColor: 'rgba(255,255,255,0.08)' },
-  qrImageContainer: { padding: 24, alignItems: 'center' },
-  qrGradFrame: {
-    borderRadius: radius.xl, padding: 16,
-    borderWidth: 0.5,
+  exportAppName: {
+    flex: 1,
+    fontSize: 17, fontWeight: '700', color: tokens.colorText, letterSpacing: -0.3,
   },
-  qrImageWrap: {
+  exportBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    backgroundColor: 'rgba(48,209,88,0.14)',
+    borderRadius: radius.pill,
+    paddingHorizontal: 10, paddingVertical: 4,
+  },
+  exportBadgeText: { fontSize: 11, fontWeight: '600', color: tokens.colorSuccess },
+  exportSep: { height: 0.5, backgroundColor: 'rgba(255,255,255,0.08)' },
+  exportLabel: {
+    fontSize: 10, fontWeight: '700', color: tokens.colorTextMuted,
+    letterSpacing: 1.2, textTransform: 'uppercase',
+    textAlign: 'center', marginTop: 20, marginBottom: 6,
+  },
+  exportPlaca: {
+    fontSize: 32, fontFamily: fontMono, fontWeight: '800',
+    color: tokens.colorText, letterSpacing: 6,
+    textAlign: 'center', marginBottom: 20,
+  },
+  exportQrWrap: {
+    alignSelf: 'center',
     backgroundColor: '#FFFFFF',
+    borderRadius: radius.xl,
+    padding: 12,
+    marginBottom: 20,
+    shadowColor: tokens.colorBrand,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+  },
+  exportQr: { width: 200, height: 200 },
+  exportInstruction: {
+    ...type.footnote, color: tokens.colorTextSecondary,
+    textAlign: 'center', marginBottom: 20, letterSpacing: 0.1,
+  },
+  exportFooter: {
+    ...type.caption2, color: tokens.colorTextMuted,
+    textAlign: 'center', paddingVertical: 12, letterSpacing: 0.3,
+  },
+  // Download button
+  downloadBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    backgroundColor: tokens.colorBrandTint,
+    borderWidth: 0.5, borderColor: tokens.colorBrandBorder,
     borderRadius: radius.lg,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3, shadowRadius: 12,
+    paddingVertical: 14,
+    marginBottom: spacing.lg,
   },
-  qr: { width: 200, height: 200 },
-  qrMeta: { padding: 16, paddingTop: 4, gap: 6 },
-  qrPlaca: {
-    fontSize: 20, fontFamily: fontMono, color: tokens.colorText,
-    fontWeight: '700', letterSpacing: 4,
-  },
-  qrHint: { ...type.footnote, color: tokens.colorTextSecondary, lineHeight: 19 },
+  downloadBtnDisabled: { opacity: 0.5 },
+  downloadBtnText: { ...type.headline, color: tokens.colorBrand },
 });
