@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ScrollView, View, Text, StyleSheet } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import * as Haptics from 'expo-haptics';
 import { tokens, spacing, radius } from '../src/lib/tokens';
 import { toVerdict } from '../src/lib/colores';
 import { PlateInput } from '../src/components/PlateInput';
@@ -9,6 +10,7 @@ import { VerdictCard } from '../src/components/VerdictCard';
 import { CheckList } from '../src/components/CheckList';
 import { VehicleCard } from '../src/components/VehicleCard';
 import { ShareButton } from '../src/components/ShareButton';
+import { EmptyState } from '../src/components/EmptyState';
 import { verificarPasajero, type Veredicto } from '../src/api/verificar';
 import { ocrPlaca } from '../src/api/ocr';
 
@@ -26,7 +28,15 @@ export default function Pasajero() {
     setVehicleMatch(null);
     setCargando(true);
     try {
-      setVeredicto(await verificarPasajero(placa.trim().toUpperCase()));
+      const v = await verificarPasajero(placa.trim().toUpperCase());
+      setVeredicto(v);
+      Haptics.notificationAsync(
+        v.color === 'verde'
+          ? Haptics.NotificationFeedbackType.Success
+          : v.color === 'rojo'
+            ? Haptics.NotificationFeedbackType.Error
+            : Haptics.NotificationFeedbackType.Warning,
+      );
     } catch {
       setError('No pudimos verificar. Revisa tu conexión.');
     } finally {
@@ -79,6 +89,14 @@ export default function Pasajero() {
         <View style={styles.errorBox}>
           <Text style={styles.errorText}>{error}</Text>
         </View>
+      )}
+
+      {!veredicto && !cargando && !error && (
+        <EmptyState
+          icon="shield-checkmark-outline"
+          title="Ingresa una placa para comenzar"
+          subtitle="Verificaremos SOAT, revision tecnica y datos del vehiculo en tiempo real"
+        />
       )}
 
       {veredicto && (

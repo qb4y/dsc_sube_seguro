@@ -4,6 +4,7 @@ import { tokens, spacing, radius } from '../src/lib/tokens';
 import { PlateInput } from '../src/components/PlateInput';
 import { Button } from '../src/components/Button';
 import { crearQrConductor } from '../src/api/verificar';
+import { EmptyState } from '../src/components/EmptyState';
 
 const API = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8000';
 
@@ -52,6 +53,14 @@ export default function Conductor() {
           Generar mi QR
         </Button>
       </View>
+
+      {!qrUrl && !cargando && !error && (
+        <EmptyState
+          icon="qr-code-outline"
+          title="Genera tu codigo QR"
+          subtitle="Tus pasajeros podran escanearlo para verificar tu vehiculo al instante"
+        />
+      )}
 
       {error !== '' && (
         <View style={styles.errorBox}>

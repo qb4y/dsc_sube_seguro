@@ -55,19 +55,19 @@ Cada componente RN replica las props del DS web (`design-system/src/components/`
 - [x] `app/index.tsx` — **Pasajero**: PlateInput → Verificar → VerdictCard + CheckList + VehicleCard + ShareButton + botón cámara OCR
 - [x] `app/comprador.tsx` — **Comprador**: PlateInput → Verificar → VerdictCard + CheckList
 - [x] `app/conductor.tsx` — **Conductor**: PlateInput + DNI → Generar QR → Mostrar imagen QR
-- [ ] Integrar upload de contrato en Comprador (PDF/foto → Claude API)
-- [ ] Pantalla de resultado de análisis de contrato (alertas + resumen)
+- [x] Integrar upload de contrato en Comprador (PDF/foto → Claude API)
+- [x] Pantalla de resultado de análisis de contrato (alertas + resumen)
 
 ---
 
 ## Fase 5 — Polish y UX
 
-- [ ] Iconos reales en tabs (reemplazar emojis por iconos de librería)
+- [x] Iconos reales en tabs (reemplazar emojis por iconos de librería)
 - [ ] Loading state con animación scan-line en PlateInput
 - [ ] Error handling visual mejorado (toast o snackbar)
 - [ ] Animaciones de transición entre estados (sin resultado → cargando → resultado)
-- [ ] Haptic feedback al obtener veredicto
-- [ ] Empty state cuando no hay resultados
+- [x] Haptic feedback al obtener veredicto
+- [x] Empty state cuando no hay resultados
 
 ---
 

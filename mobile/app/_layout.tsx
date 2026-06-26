@@ -1,5 +1,6 @@
 import { Tabs } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { Ionicons } from '@expo/vector-icons';
 import { tokens } from '../src/lib/tokens';
 
 export default function Layout() {
@@ -20,9 +21,33 @@ export default function Layout() {
           sceneStyle: { backgroundColor: tokens.colorBackground },
         }}
       >
-        <Tabs.Screen name="index" options={{ title: '🚕 Pasajero' }} />
-        <Tabs.Screen name="comprador" options={{ title: '🛒 Comprador' }} />
-        <Tabs.Screen name="conductor" options={{ title: '🪪 Conductor' }} />
+        <Tabs.Screen
+          name="index"
+          options={{
+            title: 'Pasajero',
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="car-outline" size={size} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="comprador"
+          options={{
+            title: 'Comprador',
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="search-outline" size={size} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="conductor"
+          options={{
+            title: 'Conductor',
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="qr-code-outline" size={size} color={color} />
+            ),
+          }}
+        />
       </Tabs>
     </>
   );
