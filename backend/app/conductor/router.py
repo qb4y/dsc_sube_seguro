@@ -37,21 +37,21 @@ def _make_aggregator() -> VerificacionAggregator:
 
 @router.post("/qr")
 async def conductor_qr(req: QRRequest):
-    report = create_report(placa=req.placa, dni=req.dni)
+    report = await create_report(placa=req.placa, dni=req.dni)
     return {"report_id": report.report_id, "qr_url": f"/conductor/verify/{report.report_id}"}
 
 
 @router.get("/verify/{report_id}", response_model=Veredicto)
 async def conductor_verify(report_id: str):
-    report = get_report(report_id)
+    report = await get_report(report_id)
     if not report:
         raise HTTPException(status_code=404, detail="Reporte no encontrado.")
     return await _make_aggregator().verificar_conductor(report.placa, report.dni)
 
 
 @router.get("/qr.png")
-def conductor_qr_png(report_id: str):
-    report = get_report(report_id)
+async def conductor_qr_png(report_id: str):
+    report = await get_report(report_id)
     if not report:
         raise HTTPException(status_code=404, detail="Reporte no encontrado.")
     base = get_settings().public_url.rstrip("/")
