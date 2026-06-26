@@ -285,7 +285,7 @@ export default function Pasajero() {
         {/* Results */}
         {veredicto && (
           <Animated.View style={[styles.results, resultsReveal]}>
-            <VerdictCard verdict={toVerdict(veredicto.color)} placa={veredicto.placa} />
+            <VerdictCard verdict={toVerdict(veredicto.color)} placa={veredicto.placa} score={veredicto.score} />
             {vehiculoCheck && (
               <VehicleCard
                 vehicle={{ marca: vMarca, modelo: vModelo, color: vColor }}

@@ -15,6 +15,7 @@ export interface Veredicto {
   resumen: string;
   placa: string;
   checks: Check[];
+  score: number;
 }
 
 export async function verificarPasajero(placa: string): Promise<Veredicto> {

@@ -180,7 +180,7 @@ export default function Comprador() {
         {/* Results */}
         {resultado && (
           <Animated.View style={[styles.results, resultsReveal]}>
-            <VerdictCard verdict={toVerdict(resultado.veredicto.color)} placa={resultado.veredicto.placa} />
+            <VerdictCard verdict={toVerdict(resultado.veredicto.color)} placa={resultado.veredicto.placa} score={resultado.veredicto.score} />
             <CheckList checks={resultado.veredicto.checks} />
             {resultado.contrato && <ContratoResult analisis={resultado.contrato} />}
           </Animated.View>

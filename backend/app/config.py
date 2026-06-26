@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     jsonpe_base_url: str = "https://api.json.pe"
     jsonpe_token: str = ""
     anthropic_api_key: str = ""
+    gemini_api_key: str = ""
     app_secret: str = "dev-secret"
     cache_ttl_seconds: int = 600
     cors_origins: list[str] = ["*"]

@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from app.shared.models import Check, Color, now_utc
-from app.verificacion.domain.models import SoatInfo, VehiculoInfo, RevisionTecnicaInfo
+from app.verificacion.domain.models import SoatInfo, VehiculoInfo, RevisionTecnicaInfo, LicenciaInfo
 
 
 def score_soat(info: SoatInfo | None, fuente: str) -> Check:
@@ -53,6 +53,28 @@ def score_revision_tecnica(info: RevisionTecnicaInfo | None, fuente: str) -> Che
     return Check(
         clave="revision_tecnica", etiqueta="Revisión Técnica", color=Color.verde,
         detalle="Revisión técnica aprobada y vigente.",
+        fuente=fuente, consultado_en=ts,
+    )
+
+
+def score_licencia(info: LicenciaInfo | None, fuente: str) -> Check:
+    ts = now_utc()
+    if info is None:
+        return Check(
+            clave="licencia", etiqueta="Licencia de conducir", color=Color.ambar,
+            detalle="No pudimos consultar la licencia.",
+            fuente=fuente, consultado_en=ts,
+        )
+    if not info.vigente:
+        return Check(
+            clave="licencia", etiqueta="Licencia de conducir", color=Color.rojo,
+            detalle="Licencia vencida o no habilitada.",
+            fuente=fuente, consultado_en=ts,
+        )
+    cat = f" · Categoría {info.categoria}" if info.categoria else ""
+    return Check(
+        clave="licencia", etiqueta="Licencia de conducir", color=Color.verde,
+        detalle=f"Licencia vigente{cat}.",
         fuente=fuente, consultado_en=ts,
     )
 

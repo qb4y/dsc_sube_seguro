@@ -8,7 +8,12 @@ from app.config import get_settings
 from app.shared.cache import TTLCache
 from app.shared.models import Veredicto
 from app.verificacion.application.aggregator import VerificacionAggregator
-from app.verificacion.infrastructure.jsonpe import JsonPeSoatAdapter, JsonPeVehiculoAdapter, JsonPeRevisionTecnicaAdapter
+from app.verificacion.infrastructure.jsonpe import (
+    JsonPeSoatAdapter,
+    JsonPeVehiculoAdapter,
+    JsonPeRevisionTecnicaAdapter,
+    JsonPeLicenciaAdapter,
+)
 from app.verificacion.infrastructure.apeseg import ApeSegScraper
 
 router = APIRouter(prefix="/conductor", tags=["conductor"])
@@ -17,6 +22,17 @@ router = APIRouter(prefix="/conductor", tags=["conductor"])
 class QRRequest(BaseModel):
     placa: str
     dni: str
+
+
+def _make_aggregator() -> VerificacionAggregator:
+    return VerificacionAggregator(
+        soat_port=JsonPeSoatAdapter(),
+        vehiculo_port=JsonPeVehiculoAdapter(),
+        cache=TTLCache(ttl_seconds=0),
+        soat_fallback=ApeSegScraper(),
+        revision_tecnica_port=JsonPeRevisionTecnicaAdapter(),
+        licencia_port=JsonPeLicenciaAdapter(),
+    )
 
 
 @router.post("/qr")
@@ -30,15 +46,7 @@ async def conductor_verify(report_id: str):
     report = get_report(report_id)
     if not report:
         raise HTTPException(status_code=404, detail="Reporte no encontrado.")
-    # zero-TTL forces fresh query — QR always re-consults the source
-    agg = VerificacionAggregator(
-        soat_port=JsonPeSoatAdapter(),
-        vehiculo_port=JsonPeVehiculoAdapter(),
-        cache=TTLCache(ttl_seconds=0),
-        soat_fallback=ApeSegScraper(),
-        revision_tecnica_port=JsonPeRevisionTecnicaAdapter(),
-    )
-    return await agg.verificar_pasajero(report.placa)
+    return await _make_aggregator().verificar_conductor(report.placa, report.dni)
 
 
 @router.get("/qr.png")
