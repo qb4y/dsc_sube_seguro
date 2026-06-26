@@ -24,7 +24,7 @@ export default function Layout() {
             borderColor: 'rgba(255,255,255,0.12)',
             borderTopWidth: 0.5,
             borderTopColor: 'rgba(255,255,255,0.12)',
-            height: 56,
+            height: 52,
             paddingBottom: 0,
             paddingTop: 0,
             elevation: 0,
@@ -34,7 +34,12 @@ export default function Layout() {
             shadowRadius: 16,
           },
           tabBarItemStyle: {
-            paddingVertical: 7,
+            height: 52,
+            justifyContent: 'center',
+            alignItems: 'center',
+          },
+          tabBarIconStyle: {
+            marginBottom: -2,
           },
           tabBarActiveTintColor: tokens.colorBrand,
           tabBarInactiveTintColor: 'rgba(235,235,245,0.35)',
@@ -42,7 +47,8 @@ export default function Layout() {
             fontSize: 10,
             fontWeight: '600',
             letterSpacing: 0.2,
-            marginTop: 1,
+            marginTop: 0,
+            marginBottom: 2,
           },
           sceneStyle: { backgroundColor: tokens.colorBackground },
         }}

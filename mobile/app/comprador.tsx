@@ -90,33 +90,35 @@ export default function Comprador() {
             <Text style={styles.cardLabel}>Placa del vehículo</Text>
             <PlateInput value={placa} onChange={setPlaca} onSubmit={verificar} loading={cargando} />
 
-            <Pressable
-              style={({ pressed }) => [
-                styles.attachBtn,
-                archivo && styles.attachBtnActive,
-                pressed && { opacity: 0.7 },
-              ]}
-              onPress={seleccionarContrato}
-              disabled={cargando}
-            >
-              <Ionicons
-                name={archivo ? 'document-text' : 'attach'}
-                size={18}
-                color={archivo ? tokens.colorBrand : tokens.colorTextSecondary}
-              />
-              <Text style={[styles.attachText, archivo && styles.attachTextActive]} numberOfLines={1}>
-                {archivo ? archivo.name : 'Adjuntar contrato (opcional)'}
-              </Text>
-              {archivo && (
-                <Pressable onPress={() => setArchivo(null)} hitSlop={8}>
-                  <Ionicons name="close-circle" size={16} color={tokens.colorTextMuted} />
-                </Pressable>
-              )}
-            </Pressable>
+            <View style={styles.actionGroup}>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.attachBtn,
+                  archivo && styles.attachBtnActive,
+                  pressed && { opacity: 0.7 },
+                ]}
+                onPress={seleccionarContrato}
+                disabled={cargando}
+              >
+                <Ionicons
+                  name={archivo ? 'document-text' : 'attach'}
+                  size={18}
+                  color={archivo ? tokens.colorBrand : tokens.colorTextSecondary}
+                />
+                <Text style={[styles.attachText, archivo && styles.attachTextActive]} numberOfLines={1}>
+                  {archivo ? archivo.name : 'Adjuntar contrato (opcional)'}
+                </Text>
+                {archivo && (
+                  <Pressable onPress={() => setArchivo(null)} hitSlop={8}>
+                    <Ionicons name="close-circle" size={16} color={tokens.colorTextMuted} />
+                  </Pressable>
+                )}
+              </Pressable>
 
-            <Button onPress={verificar} loading={cargando} disabled={!placa.trim()}>
-              Verificar vehículo
-            </Button>
+              <Button onPress={verificar} loading={cargando} disabled={!placa.trim()}>
+                Verificar vehículo
+              </Button>
+            </View>
           </GlassCard>
         </Animated.View>
 
@@ -177,7 +179,8 @@ const styles = StyleSheet.create({
   heroTitle: { ...type.largeTitle, color: tokens.colorText, marginBottom: 4 },
   heroSub:   { ...type.title3, color: tokens.colorTextSecondary, fontWeight: '400' },
 
-  card: { padding: spacing.xl, gap: spacing.xl, marginBottom: spacing.lg },
+  card: { padding: spacing.lg, gap: spacing.md, marginBottom: spacing.lg },
+  actionGroup: { gap: 14, marginTop: 8 },
   cardLabel: {
     ...type.footnote, color: tokens.colorTextMuted,
     fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.8,

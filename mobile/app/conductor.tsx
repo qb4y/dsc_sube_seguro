@@ -63,22 +63,24 @@ export default function Conductor() {
           <GlassCard style={styles.card}>
             <Text style={styles.cardLabel}>Datos del conductor</Text>
             <PlateInput value={placa} onChange={setPlaca} loading={false} />
-            <TextInput
-              testID="input-dni"
-              style={[styles.dniInput, focused && styles.dniInputFocused]}
-              placeholder="DNI (8 dígitos)"
-              placeholderTextColor={tokens.colorTextMuted}
-              keyboardType="number-pad"
-              maxLength={8}
-              value={dni}
-              onChangeText={setDni}
-              onFocus={() => setFocused(true)}
-              onBlur={() => setFocused(false)}
-              selectionColor={tokens.colorBrand}
-            />
-            <Button onPress={generar} loading={cargando} disabled={!placa.trim() || !dni.trim()}>
-              Generar mi QR
-            </Button>
+            <View style={styles.actionGroup}>
+              <TextInput
+                testID="input-dni"
+                style={[styles.dniInput, focused && styles.dniInputFocused]}
+                placeholder="DNI (8 dígitos)"
+                placeholderTextColor={tokens.colorTextMuted}
+                keyboardType="number-pad"
+                maxLength={8}
+                value={dni}
+                onChangeText={setDni}
+                onFocus={() => setFocused(true)}
+                onBlur={() => setFocused(false)}
+                selectionColor={tokens.colorBrand}
+              />
+              <Button onPress={generar} loading={cargando} disabled={!placa.trim() || !dni.trim()}>
+                Generar mi QR
+              </Button>
+            </View>
           </GlassCard>
         </Animated.View>
 
@@ -162,7 +164,8 @@ const styles = StyleSheet.create({
   heroTitle: { ...type.largeTitle, color: tokens.colorText, marginBottom: 4 },
   heroSub:   { ...type.title3, color: tokens.colorTextSecondary, fontWeight: '400' },
 
-  card: { padding: spacing.xl, gap: spacing.xl, marginBottom: spacing.lg },
+  card: { padding: spacing.lg, gap: spacing.md, marginBottom: spacing.lg },
+  actionGroup: { gap: 14, marginTop: 8 },
   cardLabel: {
     ...type.footnote, color: tokens.colorTextMuted,
     fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.8,
