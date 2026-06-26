@@ -83,6 +83,15 @@ export default function Layout() {
             ),
           }}
         />
+        <Tabs.Screen
+          name="historial"
+          options={{
+            title: 'Historial',
+            tabBarIcon: ({ color, focused }) => (
+              <Ionicons name={focused ? 'time' : 'time-outline'} size={22} color={color} />
+            ),
+          }}
+        />
       </Tabs>
     </>
   );

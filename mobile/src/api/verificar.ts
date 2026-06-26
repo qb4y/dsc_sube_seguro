@@ -54,3 +54,8 @@ export async function crearQrConductor(
   const { data } = await api.post('/conductor/qr', { placa, dni });
   return data;
 }
+
+export async function verificarPorReportId(reportId: string): Promise<Veredicto> {
+  const { data } = await api.get(`/conductor/verify/${reportId}`);
+  return data as Veredicto;
+}

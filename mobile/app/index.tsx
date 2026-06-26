@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Animated, ScrollView, View, Text, StyleSheet, Pressable } from 'react-native';
+import { Animated, ScrollView, View, Text, StyleSheet, Modal, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import * as Haptics from 'expo-haptics';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
 import { tokens, spacing, radius, type, fontMono } from '../src/lib/tokens';
 import { toVerdict } from '../src/lib/colores';
@@ -15,8 +16,9 @@ import { CheckList } from '../src/components/CheckList';
 import { VehicleCard } from '../src/components/VehicleCard';
 import { ShareButton } from '../src/components/ShareButton';
 import { EmptyState } from '../src/components/EmptyState';
-import { verificarPasajero, type Veredicto } from '../src/api/verificar';
+import { verificarPasajero, verificarPorReportId, type Veredicto } from '../src/api/verificar';
 import { ocrPlaca } from '../src/api/ocr';
+import { guardarVerificacion } from '../src/lib/history';
 
 export default function Pasajero() {
   const insets = useSafeAreaInsets();
@@ -25,6 +27,10 @@ export default function Pasajero() {
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState('');
   const [vehicleMatch, setVehicleMatch] = useState<boolean | null>(null);
+  const [qrScannerAbierto, setQrScannerAbierto] = useState(false);
+  const [qrEscaneado, setQrEscaneado] = useState(false);
+
+  const [cameraPermission, requestCameraPermission] = useCameraPermissions();
 
   // Badge animation
   const badgeAnim = useRef(new Animated.Value(0)).current;
@@ -62,6 +68,19 @@ export default function Pasajero() {
     shimmer.setValue(0);
   }, [cargando]);
 
+  const mostrarResultado = (v: Veredicto) => {
+    setVeredicto(v);
+    setVehicleMatch(null);
+    guardarVerificacion(v);
+    Haptics.notificationAsync(
+      v.color === 'verde'
+        ? Haptics.NotificationFeedbackType.Success
+        : v.color === 'rojo'
+          ? Haptics.NotificationFeedbackType.Error
+          : Haptics.NotificationFeedbackType.Warning,
+    );
+  };
+
   const verificar = async () => {
     if (!placa.trim()) return;
     setError('');
@@ -70,14 +89,7 @@ export default function Pasajero() {
     setCargando(true);
     try {
       const v = await verificarPasajero(placa.trim().toUpperCase());
-      setVeredicto(v);
-      Haptics.notificationAsync(
-        v.color === 'verde'
-          ? Haptics.NotificationFeedbackType.Success
-          : v.color === 'rojo'
-            ? Haptics.NotificationFeedbackType.Error
-            : Haptics.NotificationFeedbackType.Warning,
-      );
+      mostrarResultado(v);
     } catch {
       setError('No pudimos verificar. Revisa tu conexión.');
       shake();
@@ -100,6 +112,44 @@ export default function Pasajero() {
       if (candidatas[0]) setPlaca(candidatas[0]);
     } catch {
       setError('No pudimos leer la placa de la foto.');
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  const abrirQrScanner = async () => {
+    if (!cameraPermission?.granted) {
+      const result = await requestCameraPermission();
+      if (!result.granted) {
+        setError('Se necesita permiso de cámara para escanear el QR.');
+        return;
+      }
+    }
+    setQrEscaneado(false);
+    setQrScannerAbierto(true);
+  };
+
+  const onQrEscaneado = async ({ data }: { data: string }) => {
+    if (qrEscaneado) return;
+    setQrEscaneado(true);
+    setQrScannerAbierto(false);
+
+    // URL format: http://IP:PORT/conductor/verify/{report_id}
+    const match = data.match(/\/conductor\/verify\/([^/?#]+)/);
+    if (!match) {
+      setError('QR no válido. Pide al conductor su código actualizado.');
+      return;
+    }
+    const reportId = match[1];
+    setError('');
+    setVeredicto(null);
+    setCargando(true);
+    try {
+      const v = await verificarPorReportId(reportId);
+      mostrarResultado(v);
+    } catch {
+      setError('No pudimos verificar el QR. Revisa tu conexión.');
+      shake();
     } finally {
       setCargando(false);
     }
@@ -184,6 +234,10 @@ export default function Pasajero() {
                   </Button>
                 </View>
               </View>
+              <Button variant="ghost" onPress={abrirQrScanner} disabled={cargando}>
+                <Ionicons name="qr-code-outline" size={16} color={tokens.colorBrand} />
+                {'  '}Escanear QR del conductor
+              </Button>
             </GlassCard>
           </Animated.View>
         )}
@@ -223,9 +277,49 @@ export default function Pasajero() {
           </Animated.View>
         )}
       </ScrollView>
+
+      {/* QR Scanner Modal */}
+      <Modal
+        visible={qrScannerAbierto}
+        animationType="slide"
+        onRequestClose={() => setQrScannerAbierto(false)}
+      >
+        <View style={styles.scannerRoot}>
+          <CameraView
+            style={StyleSheet.absoluteFillObject}
+            barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
+            onBarcodeScanned={onQrEscaneado}
+          />
+
+          <View style={styles.scannerOverlay}>
+            <View style={[styles.scannerTop, { paddingTop: insets.top + 16 }]}>
+              <Pressable onPress={() => setQrScannerAbierto(false)} style={styles.closeBtn}>
+                <Ionicons name="close" size={22} color="#fff" />
+              </Pressable>
+              <Text style={styles.scannerTitle}>Escanear QR del conductor</Text>
+            </View>
+
+            <View style={styles.viewfinderWrap}>
+              <View style={styles.viewfinder}>
+                <View style={[styles.corner, styles.cornerTL]} />
+                <View style={[styles.corner, styles.cornerTR]} />
+                <View style={[styles.corner, styles.cornerBL]} />
+                <View style={[styles.corner, styles.cornerBR]} />
+              </View>
+            </View>
+
+            <View style={styles.scannerBottom}>
+              <Text style={styles.scannerHint}>Apunta al QR que genera el conductor</Text>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
+
+const CORNER = 24;
+const BORDER = 3;
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: tokens.colorBackground },
@@ -316,4 +410,37 @@ const styles = StyleSheet.create({
   },
   errorText: { ...type.subheadline, color: tokens.colorDanger, flex: 1 },
   results: { gap: 0 },
+
+  // QR Scanner
+  scannerRoot: { flex: 1, backgroundColor: '#000' },
+  scannerOverlay: { ...StyleSheet.absoluteFillObject, justifyContent: 'space-between' },
+  scannerTop: {
+    flexDirection: 'row', alignItems: 'center', gap: 14,
+    paddingHorizontal: spacing.lg, paddingBottom: 20,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+  },
+  closeBtn: {
+    width: 36, height: 36, borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  scannerTitle: { ...type.headline, color: '#fff' },
+
+  viewfinderWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  viewfinder: { width: 240, height: 240, position: 'relative' },
+  corner: {
+    position: 'absolute',
+    width: CORNER, height: CORNER,
+    borderColor: tokens.colorBrand,
+  },
+  cornerTL: { top: 0, left: 0, borderTopWidth: BORDER, borderLeftWidth: BORDER, borderTopLeftRadius: 6 },
+  cornerTR: { top: 0, right: 0, borderTopWidth: BORDER, borderRightWidth: BORDER, borderTopRightRadius: 6 },
+  cornerBL: { bottom: 0, left: 0, borderBottomWidth: BORDER, borderLeftWidth: BORDER, borderBottomLeftRadius: 6 },
+  cornerBR: { bottom: 0, right: 0, borderBottomWidth: BORDER, borderRightWidth: BORDER, borderBottomRightRadius: 6 },
+
+  scannerBottom: {
+    paddingVertical: 32, paddingHorizontal: spacing.lg,
+    backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center',
+  },
+  scannerHint: { ...type.subheadline, color: 'rgba(255,255,255,0.7)', textAlign: 'center' },
 });

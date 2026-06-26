@@ -3,8 +3,8 @@ from datetime import datetime
 import httpx
 
 from app.config import get_settings
-from app.verificacion.domain.models import LicenciaInfo, SoatInfo, VehiculoInfo
-from app.verificacion.domain.ports import ILicenciaPort, ISoatPort, IVehiculoPort
+from app.verificacion.domain.models import LicenciaInfo, RevisionTecnicaInfo, SoatInfo, VehiculoInfo
+from app.verificacion.domain.ports import ILicenciaPort, IRevisionTecnicaPort, ISoatPort, IVehiculoPort
 
 
 def _client() -> httpx.AsyncClient:
@@ -58,6 +58,27 @@ class JsonPeVehiculoAdapter(IVehiculoPort):
             modelo=data.get("modelo"),
             color=data.get("color"),
             año=data.get("anio"),
+        )
+
+
+class JsonPeRevisionTecnicaAdapter(IRevisionTecnicaPort):
+    async def consultar(self, placa: str) -> RevisionTecnicaInfo | None:
+        async with _client() as client:
+            r = await client.post("/api/revision-tecnica", json={"placa": placa})
+            r.raise_for_status()
+            resp = r.json()
+        if not resp.get("success"):
+            return None
+        items = resp.get("data", [])
+        if not items:
+            return None
+        # First item is always the most recent (orden: ULTIMO)
+        latest = items[0]
+        return RevisionTecnicaInfo(
+            vigente=latest.get("estado") == "VIGENTE" and latest.get("resultado_inspeccion") == "APROBADO",
+            fecha_vencimiento=_parse_date(latest.get("vigente_hasta")),
+            empresa_certificadora=latest.get("empresa_certificadora"),
+            numero_certificado=latest.get("numero_certificado"),
         )
 
 

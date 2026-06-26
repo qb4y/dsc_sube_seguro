@@ -7,7 +7,7 @@ export interface ButtonProps {
   variant?: 'primary' | 'ghost' | 'tinted';
   loading?: boolean;
   disabled?: boolean;
-  children: string;
+  children: React.ReactNode;
   onPress: () => void;
 }
 

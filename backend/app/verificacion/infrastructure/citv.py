@@ -1,4 +1,4 @@
-import requests
+import httpx
 
 from app.shared.models import Check, Color, now_utc
 
@@ -6,12 +6,13 @@ CITV_URL = "https://portales.mtc.gob.pe/citv/consulta"
 
 
 class CitvScraper:
-    """Revisión técnica fallback."""
+    """Revisión técnica via MTC CITV portal."""
 
     async def consultar(self, placa: str) -> Check:
         try:
-            resp = requests.get(f"{CITV_URL}?placa={placa}", timeout=15)
-            resp.raise_for_status()
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                resp = await client.get(f"{CITV_URL}?placa={placa}")
+                resp.raise_for_status()
             vigente = "APROBADO" in resp.text.upper()
             return Check(
                 clave="revision_tecnica",

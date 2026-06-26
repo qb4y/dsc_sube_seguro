@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from app.shared.models import Check, Color, now_utc
-from app.verificacion.domain.models import SoatInfo, VehiculoInfo
+from app.verificacion.domain.models import SoatInfo, VehiculoInfo, RevisionTecnicaInfo
 
 
 def score_soat(info: SoatInfo | None, fuente: str) -> Check:
@@ -32,6 +32,27 @@ def score_soat(info: SoatInfo | None, fuente: str) -> Check:
     return Check(
         clave="soat", etiqueta="SOAT", color=Color.verde,
         detalle=f"SOAT vigente{aseg}.",
+        fuente=fuente, consultado_en=ts,
+    )
+
+
+def score_revision_tecnica(info: RevisionTecnicaInfo | None, fuente: str) -> Check:
+    ts = now_utc()
+    if info is None:
+        return Check(
+            clave="revision_tecnica", etiqueta="Revisión Técnica", color=Color.ambar,
+            detalle="No pudimos consultar la revisión técnica.",
+            fuente=fuente, consultado_en=ts,
+        )
+    if not info.vigente:
+        return Check(
+            clave="revision_tecnica", etiqueta="Revisión Técnica", color=Color.rojo,
+            detalle="Revisión técnica vencida. No es seguro subir.",
+            fuente=fuente, consultado_en=ts,
+        )
+    return Check(
+        clave="revision_tecnica", etiqueta="Revisión Técnica", color=Color.verde,
+        detalle="Revisión técnica aprobada y vigente.",
         fuente=fuente, consultado_en=ts,
     )
 

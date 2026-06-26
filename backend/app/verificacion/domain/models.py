@@ -16,6 +16,13 @@ class VehiculoInfo(BaseModel):
     año: int | str | None = None
 
 
+class RevisionTecnicaInfo(BaseModel):
+    vigente: bool
+    fecha_vencimiento: datetime | None = None
+    empresa_certificadora: str | None = None
+    numero_certificado: str | None = None
+
+
 class LicenciaInfo(BaseModel):
     categoria: str | None = None
     vigente: bool

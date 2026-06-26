@@ -7,7 +7,8 @@ from app.contratos.infrastructure.claude import ClaudeContractAdapter
 from app.shared.cache import TTLCache
 from app.shared.models import Veredicto
 from app.verificacion.application.aggregator import VerificacionAggregator
-from app.verificacion.infrastructure.jsonpe import JsonPeSoatAdapter, JsonPeVehiculoAdapter
+from app.verificacion.infrastructure.jsonpe import JsonPeSoatAdapter, JsonPeVehiculoAdapter, JsonPeRevisionTecnicaAdapter
+from app.verificacion.infrastructure.apeseg import ApeSegScraper
 
 router = APIRouter(prefix="/verificar", tags=["verificacion"])
 
@@ -19,6 +20,8 @@ def _make_aggregator() -> VerificacionAggregator:
         soat_port=JsonPeSoatAdapter(),
         vehiculo_port=JsonPeVehiculoAdapter(),
         cache=_cache,
+        soat_fallback=ApeSegScraper(),
+        revision_tecnica_port=JsonPeRevisionTecnicaAdapter(),
     )
 
 

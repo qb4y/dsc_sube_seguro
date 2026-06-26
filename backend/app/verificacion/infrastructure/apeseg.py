@@ -1,5 +1,4 @@
-import requests
-from bs4 import BeautifulSoup
+import httpx
 
 from app.verificacion.domain.models import SoatInfo
 from app.verificacion.domain.ports import ISoatPort
@@ -12,8 +11,9 @@ class ApeSegScraper(ISoatPort):
 
     async def consultar(self, placa: str) -> SoatInfo | None:
         try:
-            resp = requests.post(APESEG_URL, data={"placa": placa}, timeout=15)
-            resp.raise_for_status()
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                resp = await client.post(APESEG_URL, data={"placa": placa})
+                resp.raise_for_status()
             vigente = "VIGENTE" in resp.text.upper()
             return SoatInfo(vigente=vigente)
         except Exception:
