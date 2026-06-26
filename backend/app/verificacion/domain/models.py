@@ -13,7 +13,7 @@ class VehiculoInfo(BaseModel):
     marca: str | None = None
     modelo: str | None = None
     color: str | None = None
-    año: int | str | None = None
+    anio: str | None = None
 
 
 class RevisionTecnicaInfo(BaseModel):

@@ -49,7 +49,9 @@ class VerificacionAggregator:
             checks.append(score_revision_tecnica(rev_info, "json.pe"))
 
         veredicto = build_veredicto(placa, checks)
-        self._cache.set(f"pasajero:{placa}", veredicto)
+        # only cache clean results — ambar from failed consultas must not be cached
+        if all(c.color.value != "ambar" or "No pudimos" not in c.detalle for c in checks):
+            self._cache.set(f"pasajero:{placa}", veredicto)
         return veredicto
 
     async def verificar_conductor(self, placa_raw: str, dni: str) -> Veredicto:
@@ -78,7 +80,8 @@ class VerificacionAggregator:
             checks.append(score_licencia(lic_info, "json.pe"))
 
         veredicto = build_veredicto(placa, checks)
-        self._cache.set(cache_key, veredicto)
+        if all(c.color.value != "ambar" or "No pudimos" not in c.detalle for c in checks):
+            self._cache.set(cache_key, veredicto)
         return veredicto
 
     async def _fetch_soat(self, placa: str):

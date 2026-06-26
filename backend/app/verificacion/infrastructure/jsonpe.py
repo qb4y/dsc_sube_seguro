@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from datetime import datetime
 
 import httpx
@@ -6,21 +7,15 @@ from app.config import get_settings
 from app.verificacion.domain.models import LicenciaInfo, RevisionTecnicaInfo, SoatInfo, VehiculoInfo
 from app.verificacion.domain.ports import ILicenciaPort, IRevisionTecnicaPort, ISoatPort, IVehiculoPort
 
-# Shared client with connection pooling — avoids TCP handshake overhead per request
-_shared_client: httpx.AsyncClient | None = None
 
-
-def _client() -> httpx.AsyncClient:
-    global _shared_client
-    if _shared_client is None or _shared_client.is_closed:
-        s = get_settings()
-        _shared_client = httpx.AsyncClient(
-            base_url=s.jsonpe_base_url,
-            headers={"Authorization": f"Bearer {s.jsonpe_token}"},
-            timeout=8.0,
-            limits=httpx.Limits(max_connections=20, max_keepalive_connections=10),
-        )
-    return _shared_client
+def _make_client() -> httpx.AsyncClient:
+    s = get_settings()
+    return httpx.AsyncClient(
+        base_url=s.jsonpe_base_url,
+        headers={"Authorization": f"Bearer {s.jsonpe_token}"},
+        timeout=10.0,
+        limits=httpx.Limits(max_connections=10, max_keepalive_connections=5),
+    )
 
 
 def _parse_date(raw: str | None) -> datetime | None:
@@ -36,7 +31,8 @@ def _parse_date(raw: str | None) -> datetime | None:
 
 class JsonPeSoatAdapter(ISoatPort):
     async def consultar(self, placa: str) -> SoatInfo | None:
-        r = await _client().post("/api/soat", json={"placa": placa})
+        async with _make_client() as client:
+            r = await client.post("/api/soat", json={"placa": placa})
         r.raise_for_status()
         resp = r.json()
         if not resp.get("success"):
@@ -51,7 +47,8 @@ class JsonPeSoatAdapter(ISoatPort):
 
 class JsonPeVehiculoAdapter(IVehiculoPort):
     async def consultar(self, placa: str) -> VehiculoInfo | None:
-        r = await _client().post("/api/placa", json={"placa": placa})
+        async with _make_client() as client:
+            r = await client.post("/api/placa", json={"placa": placa})
         r.raise_for_status()
         resp = r.json()
         if not resp.get("success"):
@@ -59,16 +56,17 @@ class JsonPeVehiculoAdapter(IVehiculoPort):
         data = resp["data"]
         return VehiculoInfo(
             placa=placa,
-            marca=data.get("marca"),
-            modelo=data.get("modelo"),
-            color=data.get("color"),
-            año=data.get("anio"),
+            marca=data.get("marca") or None,
+            modelo=data.get("modelo") or None,
+            color=data.get("color") or None,
+            anio=data.get("anio") or None,
         )
 
 
 class JsonPeRevisionTecnicaAdapter(IRevisionTecnicaPort):
     async def consultar(self, placa: str) -> RevisionTecnicaInfo | None:
-        r = await _client().post("/api/revision-tecnica", json={"placa": placa})
+        async with _make_client() as client:
+            r = await client.post("/api/revision-tecnica", json={"placa": placa})
         r.raise_for_status()
         resp = r.json()
         if not resp.get("success"):
@@ -87,7 +85,8 @@ class JsonPeRevisionTecnicaAdapter(IRevisionTecnicaPort):
 
 class JsonPeLicenciaAdapter(ILicenciaPort):
     async def consultar(self, dni: str) -> LicenciaInfo | None:
-        r = await _client().post("/api/licencia", json={"dni": dni})
+        async with _make_client() as client:
+            r = await client.post("/api/licencia", json={"dni": dni})
         if r.status_code == 404:
             return None
         r.raise_for_status()
@@ -98,7 +97,6 @@ class JsonPeLicenciaAdapter(ILicenciaPort):
         raw = data.get("licencia")
         if not raw:
             return None
-        # API returns dict for single license or list for multiple
         lic = raw[0] if isinstance(raw, list) else raw
         return LicenciaInfo(
             categoria=lic.get("categoria"),
