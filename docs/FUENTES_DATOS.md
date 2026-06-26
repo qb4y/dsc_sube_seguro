@@ -1,4 +1,4 @@
-# Fuentes de Datos del Estado — SafeCheck Perú
+# Fuentes de Datos del Estado — SubeSeguro
 
 Principio: **nosotros no somos la fuente. El Estado es la fuente.**
 El app consulta en tiempo real y presenta — nunca inventa ni almacena datos de vehículos.

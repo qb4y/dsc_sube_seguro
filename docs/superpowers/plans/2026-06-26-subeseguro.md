@@ -1,4 +1,4 @@
-# SafeCheck Perú Implementation Plan
+# SubeSeguro Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -112,7 +112,7 @@ python3.11 -m venv .venv || python3 -m venv .venv   # must be 3.11+
 `backend/pyproject.toml`:
 ```toml
 [project]
-name = "safecheck-backend"
+name = "subeseguro-backend"
 version = "0.1.0"
 requires-python = ">=3.11"
 dependencies = [
@@ -140,7 +140,7 @@ asyncio_mode = "auto"
 - [ ] **Step 2: Install deps**
 
 Run: `pip install -e ".[dev]"`
-Expected: ends with `Successfully installed ... safecheck-backend-0.1.0`.
+Expected: ends with `Successfully installed ... subeseguro-backend-0.1.0`.
 
 - [ ] **Step 3: Write the failing health test**
 
@@ -189,7 +189,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
 
-app = FastAPI(title="SafeCheck Perú API", version="0.1.0")
+app = FastAPI(title="SubeSeguro API", version="0.1.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -2011,7 +2011,7 @@ Expected: every test passes (models, jsonpe, scoring, cache, apeseg, citv, aggre
 
 `backend/README.md`:
 ```markdown
-# SafeCheck Backend
+# SubeSeguro Backend
 
 ## Run
 ```
@@ -2236,7 +2236,7 @@ export function construirMensaje(p: {
     `Placa: ${p.placa}\n` +
     `Vehículo: ${p.descripcion}\n` +
     `Hora: ${p.hora}\n` +
-    `(Enviado con SafeCheck)`
+    `(Enviado con SubeSeguro)`
   );
 }
 
@@ -2589,7 +2589,7 @@ This task is screen wiring. It has no new unit test (the logic pieces are alread
 In `mobile/package.json`, set `"main": "expo-router/entry"`.
 In `mobile/app.json` under `"expo"`, add:
 ```json
-"scheme": "safecheck",
+"scheme": "subeseguro",
 "plugins": ["expo-router"]
 ```
 
@@ -2601,7 +2601,7 @@ import { Tabs } from 'expo-router';
 
 export default function Layout() {
   return (
-    <Tabs screenOptions={{ headerTitle: 'SafeCheck Perú' }}>
+    <Tabs screenOptions={{ headerTitle: 'SubeSeguro' }}>
       <Tabs.Screen name="index" options={{ title: 'Pasajero' }} />
       <Tabs.Screen name="comprador" options={{ title: 'Comprador' }} />
       <Tabs.Screen name="conductor" options={{ title: 'Conductor' }} />
@@ -2915,7 +2915,7 @@ EXPO_PUBLIC_API_URL=http://<LAN-ip>:8000 npx expo start
 
 `docs/DEMO_SCRIPT.md`:
 ```markdown
-# Demo — SafeCheck Perú
+# Demo — SubeSeguro
 
 1. "Voy a tomar un taxi." Abro la app, pestaña Pasajero.
 2. Escribo (o fotografío) la placa → toco Verificar.
@@ -2945,7 +2945,7 @@ git commit -m "docs: run instructions and demo script for Expo+FastAPI stack"
 - **Licencia (driver mode, category, validity) + QR "conductor verificado":** A2 (`LicenciaInfo`), A4 (`licencia_check`), A10 (QR + live re-query), B5 (Conductor screen).
 - **"Comparte tu viaje" WhatsApp (star feature):** B1 (`whatsapp.ts`), B4 (`CompartirViaje`), wired in B5.
 - **json.pe single provider, Bearer, cache by plate, thin proxy:** A2 (client), A5 (cache), A8 (cache by plate), A9 (proxy endpoint). Scraping fallback (user said "scrap if necessary"): A6, A7.
-- **Full SafeCheck 3 modules:** Pasajero (A9/B5), Comprador (A12/B5), Conductor (A10/B5).
+- **Full SubeSeguro 3 modules:** Pasajero (A9/B5), Comprador (A12/B5), Conductor (A10/B5).
 - **Privacy / source+timestamp / SHA-256 integrity:** Global Constraints, `Check.fuente/consultado_en` everywhere, A10 `firmar`.
 - **Expo + FastAPI stack:** Part A (FastAPI), Part B (Expo).
 

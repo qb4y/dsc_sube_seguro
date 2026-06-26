@@ -1,4 +1,4 @@
-# SafeCheck Perú
+# SubeSeguro
 
 > Revisa antes de subir: en segundos sabes si el vehículo está asegurado, si es el auto real, y tu familia sabe en cuál estás.
 
@@ -70,7 +70,7 @@ docs/
 ```
 
 > `backend/` y `mobile/` se crean durante la implementación. El plan completo está en
-> [`docs/superpowers/plans/2026-06-26-safecheck-peru.md`](docs/superpowers/plans/2026-06-26-safecheck-peru.md).
+> [`docs/superpowers/plans/2026-06-26-subeseguro.md`](docs/superpowers/plans/2026-06-26-subeseguro.md).
 
 ---
 
@@ -96,5 +96,5 @@ EXPO_PUBLIC_API_URL=http://<tu-IP-LAN>:8000 npx expo start
 
 ## Documentación
 
-- [Plan de implementación](docs/superpowers/plans/2026-06-26-safecheck-peru.md)
+- [Plan de implementación](docs/superpowers/plans/2026-06-26-subeseguro.md)
 - [Fuentes de datos del Estado](docs/FUENTES_DATOS.md)
