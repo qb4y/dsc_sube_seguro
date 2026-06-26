@@ -222,22 +222,23 @@ export default function Pasajero() {
             <GlassCard style={styles.card}>
               <Text style={styles.cardLabel}>Placa del vehículo</Text>
               <PlateInput value={placa} onChange={setPlaca} onSubmit={verificar} loading={cargando} />
-              <View style={styles.buttonRow}>
-                <View style={{ flex: 1 }}>
-                  <Button onPress={verificar} loading={cargando} disabled={!placa.trim()}>
-                    Verificar
-                  </Button>
+              <View style={styles.actionGroup}>
+                <View style={styles.buttonRow}>
+                  <View style={{ flex: 1 }}>
+                    <Button onPress={verificar} loading={cargando} disabled={!placa.trim()}>
+                      Verificar
+                    </Button>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Button variant="ghost" onPress={tomarFoto} disabled={cargando}>
+                      Usar cámara
+                    </Button>
+                  </View>
                 </View>
-                <View style={{ flex: 1 }}>
-                  <Button variant="ghost" onPress={tomarFoto} disabled={cargando}>
-                    Usar cámara
-                  </Button>
-                </View>
+                <Button variant="tinted" onPress={abrirQrScanner} disabled={cargando}>
+                  Escanear QR del conductor
+                </Button>
               </View>
-              <Button variant="ghost" onPress={abrirQrScanner} disabled={cargando}>
-                <Ionicons name="qr-code-outline" size={16} color={tokens.colorBrand} />
-                {'  '}Escanear QR del conductor
-              </Button>
             </GlassCard>
           </Animated.View>
         )}
@@ -400,7 +401,8 @@ const styles = StyleSheet.create({
     ...type.footnote, color: tokens.colorTextMuted,
     fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.8,
   },
-  buttonRow: { flexDirection: 'row', gap: 10, marginTop: 4 },
+  actionGroup: { gap: 14, marginTop: 4 },
+  buttonRow: { flexDirection: 'row', gap: 10 },
 
   errorCard: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
