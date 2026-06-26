@@ -28,6 +28,126 @@ export function useFadeSlideIn(delay = 0, fromY = 28) {
   return { opacity, transform: [{ translateY }] } as const;
 }
 
+/** Staggered fade-scale entrance — great for lists of items. */
+export function useStaggeredEntrance(index: number, baseDelay = 0) {
+  const opacity = useRef(new Animated.Value(0)).current;
+  const scale = useRef(new Animated.Value(0.92)).current;
+  const translateY = useRef(new Animated.Value(20)).current;
+
+  useEffect(() => {
+    const delay = baseDelay + index * 80;
+    Animated.parallel([
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 400,
+        delay,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.spring(scale, {
+        toValue: 1,
+        delay,
+        tension: 120,
+        friction: 10,
+        useNativeDriver: true,
+      }),
+      Animated.spring(translateY, {
+        toValue: 0,
+        delay,
+        tension: 100,
+        friction: 12,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
+  return { opacity, transform: [{ scale }, { translateY }] } as const;
+}
+
+/** Breathing glow effect — repeating scale pulse for brand elements. */
+export function useBreathingGlow() {
+  const scale = useRef(new Animated.Value(1)).current;
+  const opacity = useRef(new Animated.Value(0.7)).current;
+
+  useEffect(() => {
+    const anim = Animated.loop(
+      Animated.parallel([
+        Animated.sequence([
+          Animated.timing(scale, { toValue: 1.08, duration: 2000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+          Animated.timing(scale, { toValue: 1, duration: 2000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        ]),
+        Animated.sequence([
+          Animated.timing(opacity, { toValue: 1, duration: 2000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+          Animated.timing(opacity, { toValue: 0.5, duration: 2000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        ]),
+      ]),
+    );
+    anim.start();
+    return () => anim.stop();
+  }, []);
+
+  return { scale, opacity };
+}
+
+/** Smooth slide + fade for result sections appearing after a search. */
+export function useRevealIn(trigger: boolean, delay = 0) {
+  const opacity = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(30)).current;
+  const scale = useRef(new Animated.Value(0.95)).current;
+
+  useEffect(() => {
+    if (!trigger) {
+      opacity.setValue(0);
+      translateY.setValue(30);
+      scale.setValue(0.95);
+      return;
+    }
+    Animated.parallel([
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 500,
+        delay,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.spring(translateY, {
+        toValue: 0,
+        delay,
+        tension: 65,
+        friction: 11,
+        useNativeDriver: true,
+      }),
+      Animated.spring(scale, {
+        toValue: 1,
+        delay,
+        tension: 80,
+        friction: 10,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [trigger]);
+
+  return { opacity, transform: [{ translateY }, { scale }] } as const;
+}
+
+/** Floating animation — gentle up/down bob. */
+export function useFloat(amplitude = 6, duration = 3000) {
+  const translateY = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const anim = Animated.loop(
+      Animated.sequence([
+        Animated.timing(translateY, { toValue: -amplitude, duration: duration / 2, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        Animated.timing(translateY, { toValue: amplitude, duration: duration / 2, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+      ]),
+    );
+    anim.start();
+    return () => anim.stop();
+  }, []);
+
+  return { transform: [{ translateY }] } as const;
+}
+
 /** Scale bounce in when trigger flips to true. */
 export function useScaleBounce(trigger: boolean) {
   const scale = useRef(new Animated.Value(0.82)).current;

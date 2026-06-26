@@ -6,7 +6,7 @@ import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { tokens, spacing, radius, type, fontMono } from '../src/lib/tokens';
 import { toVerdict } from '../src/lib/colores';
-import { useFadeSlideIn, useShake } from '../src/lib/animations';
+import { useFadeSlideIn, useShake, useBreathingGlow, useRevealIn, useFloat } from '../src/lib/animations';
 import { GlassCard } from '../src/components/GlassCard';
 import { PlateInput } from '../src/components/PlateInput';
 import { Button } from '../src/components/Button';
@@ -17,19 +17,6 @@ import { ShareButton } from '../src/components/ShareButton';
 import { EmptyState } from '../src/components/EmptyState';
 import { verificarPasajero, type Veredicto } from '../src/api/verificar';
 import { ocrPlaca } from '../src/api/ocr';
-
-// ── Mock data for testing (use plate BCD-456 to trigger) ──
-const MOCK_VEREDICTO: Veredicto = {
-  color: 'verde',
-  resumen: 'Vehículo en regla',
-  placa: 'BCD-456',
-  checks: [
-    { clave: 'soat', etiqueta: 'SOAT', color: 'verde', detalle: 'Vigente hasta 15/03/2027', fuente: 'SBS', consultado_en: new Date().toISOString() },
-    { clave: 'revision_tecnica', etiqueta: 'Revisión Técnica', color: 'verde', detalle: 'Aprobada hasta 20/12/2026', fuente: 'MTC', consultado_en: new Date().toISOString() },
-    { clave: 'vehiculo', etiqueta: 'Datos del vehículo', color: 'verde', detalle: 'TOYOTA Corolla Blanco 2021', fuente: 'SUNARP', consultado_en: new Date().toISOString() },
-    { clave: 'papeletas', etiqueta: 'Papeletas', color: 'verde', detalle: 'Sin papeletas pendientes', fuente: 'SAT', consultado_en: new Date().toISOString() },
-  ],
-};
 
 export default function Pasajero() {
   const insets = useSafeAreaInsets();
@@ -53,8 +40,27 @@ export default function Pasajero() {
   }, [veredicto]);
 
   const heroAnim = useFadeSlideIn(0);
-  const cardAnim = useFadeSlideIn(80);
+  const cardAnim = useFadeSlideIn(100, 32);
+  const glowAnim = useBreathingGlow();
+  const floatAnim = useFloat(4, 3500);
+  const resultsReveal = useRevealIn(veredicto !== null, 200);
   const { translateX, shake } = useShake();
+
+  // Loading shimmer
+  const shimmer = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    if (cargando) {
+      const anim = Animated.loop(
+        Animated.sequence([
+          Animated.timing(shimmer, { toValue: 1, duration: 800, useNativeDriver: true }),
+          Animated.timing(shimmer, { toValue: 0, duration: 800, useNativeDriver: true }),
+        ]),
+      );
+      anim.start();
+      return () => anim.stop();
+    }
+    shimmer.setValue(0);
+  }, [cargando]);
 
   const verificar = async () => {
     if (!placa.trim()) return;
@@ -63,10 +69,7 @@ export default function Pasajero() {
     setVehicleMatch(null);
     setCargando(true);
     try {
-      // Use mock data for testing — type BCD-456
-      const v = placa.trim().toUpperCase() === 'BCD-456'
-        ? await new Promise<Veredicto>((r) => setTimeout(() => r({ ...MOCK_VEREDICTO, placa: placa.trim().toUpperCase() }), 1200))
-        : await verificarPasajero(placa.trim().toUpperCase());
+      const v = await verificarPasajero(placa.trim().toUpperCase());
       setVeredicto(v);
       Haptics.notificationAsync(
         v.color === 'verde'
@@ -108,8 +111,14 @@ export default function Pasajero() {
 
   return (
     <View style={styles.root}>
-      {/* Radial ambient glow — top center */}
-      <View pointerEvents="none" style={styles.ambientGlow} />
+      {/* Animated ambient glow */}
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          styles.ambientGlow,
+          { transform: [{ scale: glowAnim.scale }], opacity: glowAnim.opacity },
+        ]}
+      />
 
       <ScrollView
         style={{ flex: 1, paddingTop: insets.top }}
@@ -119,10 +128,10 @@ export default function Pasajero() {
         {/* Hero + plate badge */}
         <Animated.View style={[styles.hero, heroAnim]}>
           <View style={styles.heroRow}>
-            <View style={styles.heroIconWrap}>
+            <Animated.View style={[styles.heroIconWrap, floatAnim]}>
               <Ionicons name="shield-checkmark" size={28} color={tokens.colorBrand} />
-            </View>
-            {/* Plate badge — appears top-right when results load, tap to search again */}
+            </Animated.View>
+            {/* Plate badge — appears top-right when results load */}
             {veredicto && (
               <Pressable onPress={() => { setVeredicto(null); setPlaca(''); }}>
                 <Animated.View style={[
@@ -148,6 +157,13 @@ export default function Pasajero() {
           <Text style={styles.heroTitle}>SubeSeguro</Text>
           <Text style={styles.heroSub}>Verifica antes de subir</Text>
         </Animated.View>
+
+        {/* Loading indicator */}
+        {cargando && (
+          <Animated.View style={[styles.loadingBar, { opacity: shimmer }]}>
+            <View style={styles.loadingBarInner} />
+          </Animated.View>
+        )}
 
         {/* Input card — hidden when results show */}
         {showCard && (
@@ -192,7 +208,7 @@ export default function Pasajero() {
 
         {/* Results */}
         {veredicto && (
-          <View style={styles.results}>
+          <Animated.View style={[styles.results, resultsReveal]}>
             <VerdictCard verdict={toVerdict(veredicto.color)} placa={veredicto.placa} />
             {vehiculoCheck && (
               <VehicleCard
@@ -207,7 +223,7 @@ export default function Pasajero() {
             )}
             <CheckList checks={veredicto.checks} />
             <ShareButton placa={veredicto.placa} descripcion={descripcion} hora={hora} />
-          </View>
+          </Animated.View>
         )}
       </ScrollView>
     </View>
@@ -226,12 +242,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     shadowColor: tokens.colorBrand,
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.18,
-    shadowRadius: 100,
+    shadowOpacity: 0.22,
+    shadowRadius: 120,
   },
   content: { paddingHorizontal: spacing.lg },
 
-  hero: { paddingTop: spacing.xl, paddingBottom: spacing.xl },
+  hero: { paddingTop: spacing.xl, paddingBottom: spacing.lg },
   heroRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -274,12 +290,26 @@ const styles = StyleSheet.create({
   heroTitle: { ...type.largeTitle, color: tokens.colorText, marginBottom: 4 },
   heroSub:   { ...type.title3, color: tokens.colorTextSecondary, fontWeight: '400' },
 
+  loadingBar: {
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: tokens.colorBrandTint,
+    marginBottom: spacing.md,
+    overflow: 'hidden',
+  },
+  loadingBarInner: {
+    height: 3,
+    width: '60%',
+    borderRadius: 2,
+    backgroundColor: tokens.colorBrand,
+  },
+
   card: { padding: spacing.lg, gap: spacing.md, marginBottom: spacing.lg },
   cardLabel: {
     ...type.footnote, color: tokens.colorTextMuted,
     fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.8,
   },
-  buttonRow: { flexDirection: 'row', gap: 10 },
+  buttonRow: { flexDirection: 'row', gap: 10, marginTop: 4 },
 
   errorCard: {
     flexDirection: 'row', alignItems: 'center', gap: 8,

@@ -3,11 +3,11 @@ import { Animated, View, StyleSheet } from 'react-native';
 import { StatusRow } from './StatusRow';
 import { toVerdict } from '../lib/colores';
 import { tokens, radius } from '../lib/tokens';
-import { useFadeSlideIn } from '../lib/animations';
+import { useStaggeredEntrance } from '../lib/animations';
 import type { Check } from '../api/verificar';
 
 function AnimatedRow({ c, index, total }: { c: Check; index: number; total: number }) {
-  const anim = useFadeSlideIn(index * 60, 16);
+  const anim = useStaggeredEntrance(index, 100);
   return (
     <Animated.View
       style={[

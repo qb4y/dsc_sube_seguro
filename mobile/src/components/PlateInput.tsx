@@ -31,7 +31,7 @@ export function PlateInput({
     onChange(formatted);
   };
 
-  const isValid = /^[A-Z]{3}-[0-9]{3}$/.test(value);
+  const isValid = /^[A-Z0-9]{3}-[A-Z0-9]{3}$/.test(value);
 
   return (
     <Pressable onPress={() => inputRef.current?.focus()} style={styles.wrapper}>
@@ -70,14 +70,14 @@ export function PlateInput({
       </View>
 
       <Text style={[styles.hint, value.length > 0 && !isValid && styles.hintWarn]}>
-        {value.length > 0 && !isValid ? 'Formato: ABC-123' : 'Placa peruana · 3 letras + 3 números'}
+        {value.length > 0 && !isValid ? 'Formato: XXX-XXX' : 'Placa peruana · 6 caracteres alfanuméricos'}
       </Text>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  wrapper: { gap: 6 },
+  wrapper: { gap: 6, marginBottom: 8 },
   container: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Animated, ScrollView, View, Text, StyleSheet, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as DocumentPicker from 'expo-document-picker';
@@ -6,7 +6,7 @@ import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { tokens, spacing, radius, type } from '../src/lib/tokens';
 import { toVerdict } from '../src/lib/colores';
-import { useFadeSlideIn, useShake } from '../src/lib/animations';
+import { useFadeSlideIn, useShake, useBreathingGlow, useRevealIn, useFloat } from '../src/lib/animations';
 import { GlassCard } from '../src/components/GlassCard';
 import { PlateInput } from '../src/components/PlateInput';
 import { Button } from '../src/components/Button';
@@ -25,8 +25,30 @@ export default function Comprador() {
   const [error, setError] = useState('');
 
   const heroAnim = useFadeSlideIn(0);
-  const cardAnim = useFadeSlideIn(80);
+  const cardAnim = useFadeSlideIn(100, 32);
+  const glowAnim = useBreathingGlow();
+  const floatAnim = useFloat(4, 3200);
+  const resultsReveal = useRevealIn(resultado !== null, 200);
   const { translateX, shake } = useShake();
+
+  // Attach button entrance
+  const attachAnim = useFadeSlideIn(180, 16);
+
+  // Loading shimmer
+  const shimmer = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    if (cargando) {
+      const anim = Animated.loop(
+        Animated.sequence([
+          Animated.timing(shimmer, { toValue: 1, duration: 800, useNativeDriver: true }),
+          Animated.timing(shimmer, { toValue: 0, duration: 800, useNativeDriver: true }),
+        ]),
+      );
+      anim.start();
+      return () => anim.stop();
+    }
+    shimmer.setValue(0);
+  }, [cargando]);
 
   const seleccionarContrato = async () => {
     try {
@@ -68,7 +90,14 @@ export default function Comprador() {
 
   return (
     <View style={styles.root}>
-      <View pointerEvents="none" style={styles.ambientGlow} />
+      {/* Animated ambient glow */}
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          styles.ambientGlow,
+          { transform: [{ scale: glowAnim.scale }], opacity: glowAnim.opacity },
+        ]}
+      />
 
       <ScrollView
         style={{ flex: 1, paddingTop: insets.top }}
@@ -77,12 +106,19 @@ export default function Comprador() {
       >
         {/* Hero */}
         <Animated.View style={[styles.hero, heroAnim]}>
-          <View style={styles.heroIconWrap}>
+          <Animated.View style={[styles.heroIconWrap, floatAnim]}>
             <Ionicons name="search" size={26} color={tokens.colorBrand} />
-          </View>
+          </Animated.View>
           <Text style={styles.heroTitle}>Comprador</Text>
           <Text style={styles.heroSub}>Verifica antes de comprar</Text>
         </Animated.View>
+
+        {/* Loading indicator */}
+        {cargando && (
+          <Animated.View style={[styles.loadingBar, { opacity: shimmer }]}>
+            <View style={styles.loadingBarInner} />
+          </Animated.View>
+        )}
 
         {/* Input card */}
         <Animated.View style={cardAnim}>
@@ -90,7 +126,7 @@ export default function Comprador() {
             <Text style={styles.cardLabel}>Placa del vehículo</Text>
             <PlateInput value={placa} onChange={setPlaca} onSubmit={verificar} loading={cargando} />
 
-            <View style={styles.actionGroup}>
+            <Animated.View style={[styles.actionGroup, attachAnim]}>
               <Pressable
                 style={({ pressed }) => [
                   styles.attachBtn,
@@ -118,7 +154,7 @@ export default function Comprador() {
               <Button onPress={verificar} loading={cargando} disabled={!placa.trim()}>
                 Verificar vehículo
               </Button>
-            </View>
+            </Animated.View>
           </GlassCard>
         </Animated.View>
 
@@ -143,11 +179,11 @@ export default function Comprador() {
 
         {/* Results */}
         {resultado && (
-          <View style={styles.results}>
+          <Animated.View style={[styles.results, resultsReveal]}>
             <VerdictCard verdict={toVerdict(resultado.veredicto.color)} placa={resultado.veredicto.placa} />
             <CheckList checks={resultado.veredicto.checks} />
             {resultado.contrato && <ContratoResult analisis={resultado.contrato} />}
-          </View>
+          </Animated.View>
         )}
       </ScrollView>
     </View>
@@ -162,11 +198,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     shadowColor: tokens.colorBrand,
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.18, shadowRadius: 100,
+    shadowOpacity: 0.22, shadowRadius: 120,
   },
   content: { paddingHorizontal: spacing.lg },
 
-  hero: { alignItems: 'flex-start', paddingTop: spacing.xl, paddingBottom: spacing.xl },
+  hero: { alignItems: 'flex-start', paddingTop: spacing.xl, paddingBottom: spacing.lg },
   heroIconWrap: {
     width: 56, height: 56, borderRadius: radius.lg,
     backgroundColor: tokens.colorBrandTint,
@@ -179,8 +215,22 @@ const styles = StyleSheet.create({
   heroTitle: { ...type.largeTitle, color: tokens.colorText, marginBottom: 4 },
   heroSub:   { ...type.title3, color: tokens.colorTextSecondary, fontWeight: '400' },
 
+  loadingBar: {
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: tokens.colorBrandTint,
+    marginBottom: spacing.md,
+    overflow: 'hidden',
+  },
+  loadingBarInner: {
+    height: 3,
+    width: '60%',
+    borderRadius: 2,
+    backgroundColor: tokens.colorBrand,
+  },
+
   card: { padding: spacing.lg, gap: spacing.md, marginBottom: spacing.lg },
-  actionGroup: { gap: 14, marginTop: 8 },
+  actionGroup: { gap: 14, marginTop: 4 },
   cardLabel: {
     ...type.footnote, color: tokens.colorTextMuted,
     fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.8,

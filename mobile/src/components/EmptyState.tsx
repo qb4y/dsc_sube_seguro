@@ -2,7 +2,7 @@ import React from 'react';
 import { Animated, View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { tokens, radius, type } from '../lib/tokens';
-import { useFadeSlideIn, usePulse } from '../lib/animations';
+import { useFadeSlideIn, usePulse, useFloat } from '../lib/animations';
 
 interface Props {
   icon: keyof typeof Ionicons.glyphMap;
@@ -13,10 +13,11 @@ interface Props {
 export function EmptyState({ icon, title, subtitle }: Props) {
   const anim = useFadeSlideIn(120, 16);
   const iconOpacity = usePulse();
+  const floatAnim = useFloat(6, 3000);
 
   return (
     <Animated.View style={[styles.container, anim]}>
-      <Animated.View style={[styles.iconWrap, { opacity: iconOpacity }]}>
+      <Animated.View style={[styles.iconWrap, { opacity: iconOpacity }, floatAnim]}>
         <Ionicons name={icon} size={44} color={tokens.colorTextMuted} />
       </Animated.View>
       <Text style={styles.title}>{title}</Text>
