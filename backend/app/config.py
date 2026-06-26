@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     app_secret: str = "dev-secret"
     cache_ttl_seconds: int = 600
     cors_origins: list[str] = ["*"]
+    public_url: str = "http://localhost:8000"
 
 
 @lru_cache

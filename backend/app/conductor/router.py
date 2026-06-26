@@ -43,5 +43,6 @@ def conductor_qr_png(report_id: str):
     report = get_report(report_id)
     if not report:
         raise HTTPException(status_code=404, detail="Reporte no encontrado.")
-    url = f"http://localhost:8000/conductor/verify/{report_id}"
+    base = get_settings().public_url.rstrip("/")
+    url = f"{base}/conductor/verify/{report_id}"
     return Response(content=generate_qr_png(url), media_type="image/png")
