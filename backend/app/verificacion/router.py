@@ -2,12 +2,15 @@ from fastapi import APIRouter, File, Form, UploadFile
 from pydantic import BaseModel, field_validator
 
 from app.config import get_settings
+from app.conductor.application.report import get_latest_report_by_placa
 from app.contratos.application.analyzer import ContractAnalyzer
 from app.contratos.infrastructure.claude import ClaudeContractAdapter
 from app.shared.cache import TTLCache
 from app.shared.models import Veredicto
 from app.verificacion.application.aggregator import VerificacionAggregator
-from app.verificacion.infrastructure.jsonpe import JsonPeSoatAdapter, JsonPeVehiculoAdapter, JsonPeRevisionTecnicaAdapter
+from app.verificacion.infrastructure.jsonpe import (
+    JsonPeSoatAdapter, JsonPeVehiculoAdapter, JsonPeRevisionTecnicaAdapter, JsonPeLicenciaAdapter,
+)
 from app.verificacion.infrastructure.apeseg import ApeSegScraper
 
 router = APIRouter(prefix="/verificar", tags=["verificacion"])
@@ -22,6 +25,7 @@ def _make_aggregator() -> VerificacionAggregator:
         cache=_cache,
         soat_fallback=ApeSegScraper(),
         revision_tecnica_port=JsonPeRevisionTecnicaAdapter(),
+        licencia_port=JsonPeLicenciaAdapter(),
     )
 
 
@@ -38,7 +42,12 @@ class PasajeroRequest(BaseModel):
 
 @router.post("/pasajero", response_model=Veredicto)
 async def verificar_pasajero(req: PasajeroRequest):
-    return await _make_aggregator().verificar_pasajero(req.placa)
+    agg = _make_aggregator()
+    # auto-upgrade: if conductor is registered for this plate, include licencia check
+    report = await get_latest_report_by_placa(req.placa)
+    if report:
+        return await agg.verificar_conductor(req.placa, report.dni)
+    return await agg.verificar_pasajero(req.placa)
 
 
 @router.post("/comprador")
@@ -46,7 +55,9 @@ async def verificar_comprador(
     placa: str = Form(...),
     contrato: UploadFile | None = File(None),
 ):
-    veredicto = await _make_aggregator().verificar_pasajero(placa)
+    agg = _make_aggregator()
+    report = await get_latest_report_by_placa(placa)
+    veredicto = await (agg.verificar_conductor(placa, report.dni) if report else agg.verificar_pasajero(placa))
 
     contrato_result = None
     if contrato:

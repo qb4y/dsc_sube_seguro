@@ -36,6 +36,23 @@ async def get_report(report_id: str) -> Report | None:
             row = await cursor.fetchone()
     if not row:
         return None
+    return _row_to_report(row)
+
+
+async def get_latest_report_by_placa(placa: str) -> Report | None:
+    async with get_db() as db:
+        async with db.execute(
+            "SELECT report_id, placa, dni, created_at, signature FROM reports "
+            "WHERE placa = ? ORDER BY created_at DESC LIMIT 1",
+            (placa.upper().replace("-", "").replace(" ", ""),),
+        ) as cursor:
+            row = await cursor.fetchone()
+    if not row:
+        return None
+    return _row_to_report(row)
+
+
+def _row_to_report(row) -> Report:
     return Report(
         report_id=row["report_id"],
         placa=row["placa"],
