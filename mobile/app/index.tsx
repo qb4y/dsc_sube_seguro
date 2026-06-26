@@ -39,18 +39,16 @@ export default function Pasajero() {
   const [error, setError] = useState('');
   const [vehicleMatch, setVehicleMatch] = useState<boolean | null>(null);
 
-  // Card show/hide + badge animation
+  // Badge animation
   const badgeAnim = useRef(new Animated.Value(0)).current;
-  const cardShowAnim = useRef(new Animated.Value(1)).current;
+  const [showCard, setShowCard] = useState(true);
   useEffect(() => {
     if (veredicto) {
-      Animated.parallel([
-        Animated.spring(badgeAnim, { toValue: 1, useNativeDriver: true, tension: 80, friction: 10 }),
-        Animated.timing(cardShowAnim, { toValue: 0, duration: 300, useNativeDriver: false }),
-      ]).start();
+      Animated.spring(badgeAnim, { toValue: 1, useNativeDriver: true, tension: 80, friction: 10 }).start();
+      setShowCard(false);
     } else {
       badgeAnim.setValue(0);
-      Animated.timing(cardShowAnim, { toValue: 1, duration: 300, useNativeDriver: false }).start();
+      setShowCard(true);
     }
   }, [veredicto]);
 
@@ -151,29 +149,27 @@ export default function Pasajero() {
           <Text style={styles.heroSub}>Verifica antes de subir</Text>
         </Animated.View>
 
-        {/* Input card — collapses when results appear, stays mounted */}
-        <Animated.View style={[cardAnim, {
-          opacity: cardShowAnim,
-          maxHeight: cardShowAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 300] }),
-          overflow: 'hidden',
-        }]}>
-          <GlassCard style={styles.card}>
-            <Text style={styles.cardLabel}>Placa del vehículo</Text>
-            <PlateInput value={placa} onChange={setPlaca} onSubmit={verificar} loading={cargando} />
-            <View style={styles.buttonRow}>
-              <View style={{ flex: 1 }}>
-                <Button onPress={verificar} loading={cargando} disabled={!placa.trim()}>
-                  Verificar
-                </Button>
+        {/* Input card — hidden when results show */}
+        {showCard && (
+          <Animated.View style={cardAnim}>
+            <GlassCard style={styles.card}>
+              <Text style={styles.cardLabel}>Placa del vehículo</Text>
+              <PlateInput value={placa} onChange={setPlaca} onSubmit={verificar} loading={cargando} />
+              <View style={styles.buttonRow}>
+                <View style={{ flex: 1 }}>
+                  <Button onPress={verificar} loading={cargando} disabled={!placa.trim()}>
+                    Verificar
+                  </Button>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Button variant="ghost" onPress={tomarFoto} disabled={cargando}>
+                    Usar cámara
+                  </Button>
+                </View>
               </View>
-              <View style={{ flex: 1 }}>
-                <Button variant="ghost" onPress={tomarFoto} disabled={cargando}>
-                  Usar cámara
-                </Button>
-              </View>
-            </View>
-          </GlassCard>
-        </Animated.View>
+            </GlassCard>
+          </Animated.View>
+        )}
 
         {/* Error */}
         {error !== '' && (
