@@ -1,0 +1,30 @@
+{
+  "name": "subeseguro-ds",
+  "version": "1.0.0",
+  "module": "dist/index.es.js",
+  "main": "dist/index.cjs.js",
+  "types": "dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.cjs.js",
+      "types": "./dist/types/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "node build.mjs && tsc --emitDeclarationOnly --noEmit false"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18",
+    "lucide-react": ">=0.400"
+  },
+  "devDependencies": {
+    "@types/react": "^18",
+    "esbuild": "^0.21",
+    "typescript": "^5"
+  },
+  "allowScripts": {
+    "esbuild@0.21.5": true
+  }
+}

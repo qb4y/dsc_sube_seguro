@@ -1,0 +1,23 @@
+{
+  "shape": "package",
+  "pkg": "subeseguro-ds",
+  "globalName": "SubeSeguroDS",
+  "buildCmd": "cd design-system && npm run build",
+  "componentSrcMap": {
+    "Badge":         "design-system/src/components/Badge/index.tsx",
+    "Button":        "design-system/src/components/Button/index.tsx",
+    "ChoiceButton":  "design-system/src/components/ChoiceButton/index.tsx",
+    "MatchConfirm":  "design-system/src/components/ChoiceButton/index.tsx",
+    "PlateInput":    "design-system/src/components/PlateInput/index.tsx",
+    "ShareButton":   "design-system/src/components/ShareButton/index.tsx",
+    "StatusRow":     "design-system/src/components/StatusRow/index.tsx",
+    "VerdictCard":   "design-system/src/components/VerdictCard/index.tsx",
+    "VehicleCard":   "design-system/src/components/VehicleCard/index.tsx",
+    "tokens":        null,
+    "verdictColors": null,
+    "verdictLabels": null,
+    "VehicleInfo":   null
+  },
+  "tokensGlob": "design-system/src/tokens.ts",
+  "cssEntry": "design-system/styles.css"
+}
