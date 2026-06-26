@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "expo-router/entry",
   "dependencies": {
+    "@expo/metro-config": "^54.0.16",
     "@expo/vector-icons": "^15.1.1",
     "axios": "^1.18.1",
     "expo": "^54.0.35",
