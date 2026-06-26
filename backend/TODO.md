@@ -6,11 +6,11 @@ Orden de ataque para tener módulos funcionales e ir iterando con pruebas reales
 
 ## FASE 0 — Entorno `~30 min` ← EMPIEZA AQUÍ
 
-- [ ] Crear `backend/.env` con tokens reales (copiar de `.env.example`)
-  - `JSONPE_TOKEN` — obtener en https://json.pe/
-  - `ANTHROPIC_API_KEY` — obtener en https://console.anthropic.com/
-  - `APP_SECRET` — cualquier string largo aleatorio
-- [ ] Instalar deps: `pip install -e ".[dev]"`
+- [x] Crear `backend/.env` con tokens reales (copiar de `.env.example`)
+  - [x] `JSONPE_TOKEN` — ✅ configurado
+  - [ ] `ANTHROPIC_API_KEY` — pendiente (obtener en https://console.anthropic.com/)
+  - [x] `APP_SECRET` — generado con openssl
+- [x] Instalar deps: `pip install -e ".[dev]"`
 - [ ] Verificar arranque: `uvicorn app.main:app --reload --port 8000`
 - [ ] Smoke test: `curl http://localhost:8000/health` → `{"status":"ok"}`
 
@@ -22,13 +22,16 @@ Los shapes de respuesta de json.pe son desconocidos — el adapter en
 `app/verificacion/infrastructure/jsonpe.py` asume nombres de campos que pueden
 no coincidir. Esta fase los verifica contra la API en vivo.
 
-- [ ] Escribir `scripts/probe_jsonpe.py` — consulta `/soat/{placa}`, `/vehiculo/{placa}`,
-      `/licencia/{dni}` con datos reales y dumpa JSON crudo a `scripts/probe_output/`
-- [ ] Correr: `python scripts/probe_jsonpe.py --placa ABC123 --dni 12345678`
-- [ ] Comparar campos reales vs los asumidos en `jsonpe.py` (`vigente`, `fechaVencimiento`, `marca`, etc.)
-- [ ] Ajustar `app/verificacion/infrastructure/jsonpe.py` según campos reales
+- [ ] Escribir `scripts/probe_jsonpe.py` — pendiente (se hizo probe manual en sesión)
+- [x] Correr probe contra API real con placa/DNI de prueba
+- [x] Comparar campos reales vs asumidos — shapes confirmados en vivo:
+      - `POST /api/soat` → `data.estado/fecha_fin/nombre_compania`
+      - `POST /api/placa` → `data.marca/modelo/color/anio`
+      - `POST /api/licencia` → `data.licencia.estado/categoria/fecha_vencimiento`
+      - `POST /api/revision-tecnica` → array `[0].estado/resultado_inspeccion`
+- [x] Ajustar `app/verificacion/infrastructure/jsonpe.py` según campos reales
 - [ ] Actualizar fixtures en `tests/fixtures/jsonpe_*.json` con respuestas reales
-- [ ] Re-correr suite: `pytest tests/ -v` → 27 passed
+- [x] Re-correr suite: `pytest tests/ -v` → 27 passed
 
 ---
 
