@@ -1,0 +1,16 @@
+[
+  {
+    "sheet": 1,
+    "components": [
+      "Badge",
+      "Button",
+      "ChoiceButton",
+      "MatchConfirm",
+      "PlateInput",
+      "ShareButton",
+      "StatusRow",
+      "VehicleCard",
+      "VerdictCard"
+    ]
+  }
+]

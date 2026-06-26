@@ -1,0 +1,13 @@
+/* SubeSeguro design tokens */
+:root {
+  --color-background:       #0E1116;
+  --color-surface:          #171C24;
+  --color-surface-elevated: #1F2630;
+  --color-line:             rgba(255, 255, 255, 0.08);
+  --color-text:             #EAEEF5;
+  --color-text-muted:       #8B95A7;
+  --color-brand:            #2FD6C6;
+  --color-success:          #34D27B;
+  --color-warning:          #F4B740;
+  --color-danger:           #FF5D5D;
+}

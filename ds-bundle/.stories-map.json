@@ -1,0 +1,94 @@
+{
+  "global": "SubeSeguroDS",
+  "pkg": "subeseguro-ds",
+  "pkgDir": "/Users/noodlexz/Documents/ownproject/dsc_pucp_project/design-system",
+  "extraEntries": [],
+  "exported": [
+    "Badge",
+    "Button",
+    "ChoiceButton",
+    "MatchConfirm",
+    "PlateInput",
+    "ShareButton",
+    "StatusRow",
+    "VehicleCard",
+    "VerdictCard"
+  ],
+  "storybookStatic": null,
+  "keyRecipe": 7,
+  "cfgSliceGlobal": "a139d95ad8ab0a8ba08b44a258c54602e36090304087f48fe923c61aa5a8ae08",
+  "components": [
+    {
+      "name": "Badge",
+      "group": "general",
+      "srcSha": null,
+      "sourceKey": "39e99120b35f12f2",
+      "cfgSlice": "5ff899b099eb6923833804cda955efdd69101524bec86f67dac5537cd81802e8",
+      "stories": []
+    },
+    {
+      "name": "Button",
+      "group": "general",
+      "srcSha": null,
+      "sourceKey": "39e99120b35f12f2",
+      "cfgSlice": "5ff899b099eb6923833804cda955efdd69101524bec86f67dac5537cd81802e8",
+      "stories": []
+    },
+    {
+      "name": "ChoiceButton",
+      "group": "general",
+      "srcSha": null,
+      "sourceKey": "39e99120b35f12f2",
+      "cfgSlice": "5ff899b099eb6923833804cda955efdd69101524bec86f67dac5537cd81802e8",
+      "stories": []
+    },
+    {
+      "name": "MatchConfirm",
+      "group": "general",
+      "srcSha": null,
+      "sourceKey": "39e99120b35f12f2",
+      "cfgSlice": "5ff899b099eb6923833804cda955efdd69101524bec86f67dac5537cd81802e8",
+      "stories": []
+    },
+    {
+      "name": "PlateInput",
+      "group": "general",
+      "srcSha": null,
+      "sourceKey": "39e99120b35f12f2",
+      "cfgSlice": "5ff899b099eb6923833804cda955efdd69101524bec86f67dac5537cd81802e8",
+      "stories": []
+    },
+    {
+      "name": "ShareButton",
+      "group": "general",
+      "srcSha": null,
+      "sourceKey": "39e99120b35f12f2",
+      "cfgSlice": "5ff899b099eb6923833804cda955efdd69101524bec86f67dac5537cd81802e8",
+      "stories": []
+    },
+    {
+      "name": "StatusRow",
+      "group": "general",
+      "srcSha": null,
+      "sourceKey": "39e99120b35f12f2",
+      "cfgSlice": "5ff899b099eb6923833804cda955efdd69101524bec86f67dac5537cd81802e8",
+      "stories": []
+    },
+    {
+      "name": "VehicleCard",
+      "group": "general",
+      "srcSha": null,
+      "sourceKey": "39e99120b35f12f2",
+      "cfgSlice": "5ff899b099eb6923833804cda955efdd69101524bec86f67dac5537cd81802e8",
+      "stories": []
+    },
+    {
+      "name": "VerdictCard",
+      "group": "general",
+      "srcSha": null,
+      "sourceKey": "39e99120b35f12f2",
+      "cfgSlice": "5ff899b099eb6923833804cda955efdd69101524bec86f67dac5537cd81802e8",
+      "stories": []
+    }
+  ]
+}
