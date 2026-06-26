@@ -33,10 +33,12 @@ class JsonPeSoatAdapter(ISoatPort):
     async def consultar(self, placa: str) -> SoatInfo | None:
         async with _make_client() as client:
             r = await client.post("/api/soat", json={"placa": placa})
+        if r.status_code == 404:
+            return SoatInfo(vigente=False, sin_registro=True)
         r.raise_for_status()
         resp = r.json()
         if not resp.get("success"):
-            return None
+            return SoatInfo(vigente=False, sin_registro=True)
         data = resp["data"]
         return SoatInfo(
             vigente=data.get("estado") == "VIGENTE",
@@ -49,6 +51,8 @@ class JsonPeVehiculoAdapter(IVehiculoPort):
     async def consultar(self, placa: str) -> VehiculoInfo | None:
         async with _make_client() as client:
             r = await client.post("/api/placa", json={"placa": placa})
+        if r.status_code == 404:
+            return None
         r.raise_for_status()
         resp = r.json()
         if not resp.get("success"):
@@ -67,13 +71,15 @@ class JsonPeRevisionTecnicaAdapter(IRevisionTecnicaPort):
     async def consultar(self, placa: str) -> RevisionTecnicaInfo | None:
         async with _make_client() as client:
             r = await client.post("/api/revision-tecnica", json={"placa": placa})
+        if r.status_code == 404:
+            return RevisionTecnicaInfo(vigente=False, sin_registro=True)
         r.raise_for_status()
         resp = r.json()
         if not resp.get("success"):
-            return None
+            return RevisionTecnicaInfo(vigente=False, sin_registro=True)
         items = resp.get("data", [])
         if not items:
-            return None
+            return RevisionTecnicaInfo(vigente=False, sin_registro=True)
         latest = items[0]
         return RevisionTecnicaInfo(
             vigente=latest.get("estado") == "VIGENTE" and latest.get("resultado_inspeccion") == "APROBADO",

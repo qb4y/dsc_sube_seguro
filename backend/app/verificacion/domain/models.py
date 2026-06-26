@@ -6,6 +6,7 @@ class SoatInfo(BaseModel):
     vigente: bool
     fecha_vencimiento: datetime | None = None
     aseguradora: str | None = None
+    sin_registro: bool = False
 
 
 class VehiculoInfo(BaseModel):
@@ -21,6 +22,7 @@ class RevisionTecnicaInfo(BaseModel):
     fecha_vencimiento: datetime | None = None
     empresa_certificadora: str | None = None
     numero_certificado: str | None = None
+    sin_registro: bool = False
 
 
 class LicenciaInfo(BaseModel):

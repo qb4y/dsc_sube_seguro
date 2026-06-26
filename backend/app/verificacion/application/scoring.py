@@ -11,6 +11,12 @@ def score_soat(info: SoatInfo | None, fuente: str) -> Check:
             detalle="No pudimos consultar el SOAT.",
             fuente=fuente, consultado_en=ts,
         )
+    if info.sin_registro:
+        return Check(
+            clave="soat", etiqueta="SOAT", color=Color.rojo,
+            detalle="Sin SOAT registrado. No es seguro subir.",
+            fuente=fuente, consultado_en=ts,
+        )
     if not info.vigente:
         return Check(
             clave="soat", etiqueta="SOAT", color=Color.rojo,
@@ -42,6 +48,12 @@ def score_revision_tecnica(info: RevisionTecnicaInfo | None, fuente: str) -> Che
         return Check(
             clave="revision_tecnica", etiqueta="Revisión Técnica", color=Color.ambar,
             detalle="No pudimos consultar la revisión técnica.",
+            fuente=fuente, consultado_en=ts,
+        )
+    if info.sin_registro:
+        return Check(
+            clave="revision_tecnica", etiqueta="Revisión Técnica", color=Color.rojo,
+            detalle="Sin revisión técnica registrada.",
             fuente=fuente, consultado_en=ts,
         )
     if not info.vigente:
