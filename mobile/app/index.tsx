@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Animated, ScrollView, View, Text, StyleSheet } from 'react-native';
+import { Animated, ScrollView, View, Text, StyleSheet, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import * as Haptics from 'expo-haptics';
@@ -39,13 +39,18 @@ export default function Pasajero() {
   const [error, setError] = useState('');
   const [vehicleMatch, setVehicleMatch] = useState<boolean | null>(null);
 
-  // Plate badge animation (slides in when results appear)
+  // Card collapse + badge animation when results appear
   const badgeAnim = useRef(new Animated.Value(0)).current;
+  const cardCollapseAnim = useRef(new Animated.Value(1)).current;
   useEffect(() => {
     if (veredicto) {
-      Animated.spring(badgeAnim, { toValue: 1, useNativeDriver: true, tension: 80, friction: 10 }).start();
+      Animated.parallel([
+        Animated.spring(badgeAnim, { toValue: 1, useNativeDriver: true, tension: 80, friction: 10 }),
+        Animated.timing(cardCollapseAnim, { toValue: 0, duration: 350, useNativeDriver: true }),
+      ]).start();
     } else {
       badgeAnim.setValue(0);
+      cardCollapseAnim.setValue(1);
     }
   }, [veredicto]);
 
@@ -110,7 +115,7 @@ export default function Pasajero() {
 
       <ScrollView
         style={{ flex: 1, paddingTop: insets.top }}
-        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 112 }]}
+        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 80 }]}
         showsVerticalScrollIndicator={false}
       >
         {/* Hero + plate badge */}
@@ -119,49 +124,60 @@ export default function Pasajero() {
             <View style={styles.heroIconWrap}>
               <Ionicons name="shield-checkmark" size={28} color={tokens.colorBrand} />
             </View>
-            {/* Plate badge — appears top-right when results load */}
+            {/* Plate badge — appears top-right when results load, tap to search again */}
             {veredicto && (
-              <Animated.View style={[
-                styles.plateBadge,
-                {
-                  opacity: badgeAnim,
-                  transform: [
-                    { translateX: badgeAnim.interpolate({ inputRange: [0, 1], outputRange: [40, 0] }) },
-                    { scale: badgeAnim.interpolate({ inputRange: [0, 1], outputRange: [0.7, 1] }) },
-                  ],
-                },
-              ]}>
-                <Text style={styles.plateBadgeText}>{veredicto.placa}</Text>
-                <View style={[
-                  styles.plateBadgeDot,
-                  { backgroundColor: veredicto.color === 'verde' ? tokens.colorSuccess : veredicto.color === 'rojo' ? '#FF453A' : tokens.colorWarning },
-                ]} />
-              </Animated.View>
+              <Pressable onPress={() => { setVeredicto(null); setPlaca(''); }}>
+                <Animated.View style={[
+                  styles.plateBadge,
+                  {
+                    opacity: badgeAnim,
+                    transform: [
+                      { translateX: badgeAnim.interpolate({ inputRange: [0, 1], outputRange: [40, 0] }) },
+                      { scale: badgeAnim.interpolate({ inputRange: [0, 1], outputRange: [0.7, 1] }) },
+                    ],
+                  },
+                ]}>
+                  <View style={[
+                    styles.plateBadgeDot,
+                    { backgroundColor: veredicto.color === 'verde' ? tokens.colorSuccess : veredicto.color === 'rojo' ? '#FF453A' : tokens.colorWarning },
+                  ]} />
+                  <Text style={styles.plateBadgeText}>{veredicto.placa}</Text>
+                  <Ionicons name="close-circle" size={14} color={tokens.colorTextMuted} />
+                </Animated.View>
+              </Pressable>
             )}
           </View>
           <Text style={styles.heroTitle}>SubeSeguro</Text>
           <Text style={styles.heroSub}>Verifica antes de subir</Text>
         </Animated.View>
 
-        {/* Input card — liquid glass */}
-        <Animated.View style={cardAnim}>
-          <GlassCard style={styles.card}>
-            <Text style={styles.cardLabel}>Placa del vehículo</Text>
-            <PlateInput value={placa} onChange={setPlaca} onSubmit={verificar} loading={cargando} />
-            <View style={styles.buttonRow}>
-              <View style={{ flex: 1 }}>
-                <Button onPress={verificar} loading={cargando} disabled={!placa.trim()}>
-                  Verificar
-                </Button>
+        {/* Input card — collapses when results appear */}
+        {!veredicto && (
+          <Animated.View style={[cardAnim, {
+            opacity: cardCollapseAnim,
+            transform: [
+              ...(cardAnim.transform ?? []),
+              { scale: cardCollapseAnim.interpolate({ inputRange: [0, 1], outputRange: [0.95, 1] }) },
+            ],
+          }]}>
+            <GlassCard style={styles.card}>
+              <Text style={styles.cardLabel}>Placa del vehículo</Text>
+              <PlateInput value={placa} onChange={setPlaca} onSubmit={verificar} loading={cargando} />
+              <View style={styles.buttonRow}>
+                <View style={{ flex: 1 }}>
+                  <Button onPress={verificar} loading={cargando} disabled={!placa.trim()}>
+                    Verificar
+                  </Button>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Button variant="ghost" onPress={tomarFoto} disabled={cargando}>
+                    Usar cámara
+                  </Button>
+                </View>
               </View>
-              <View style={{ flex: 1 }}>
-                <Button variant="ghost" onPress={tomarFoto} disabled={cargando}>
-                  Usar cámara
-                </Button>
-              </View>
-            </View>
-          </GlassCard>
-        </Animated.View>
+            </GlassCard>
+          </Animated.View>
+        )}
 
         {/* Error */}
         {error !== '' && (

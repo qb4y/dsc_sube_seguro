@@ -1,11 +1,13 @@
 import { Tabs } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
+import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { tokens } from '../src/lib/tokens';
 
 export default function Layout() {
   const insets = useSafeAreaInsets();
+  const bottomPad = Platform.OS === 'ios' ? Math.max(insets.bottom, 8) : 8;
 
   return (
     <>
@@ -14,31 +16,20 @@ export default function Layout() {
         screenOptions={{
           headerShown: false,
           tabBarStyle: {
-            position: 'absolute',
-            bottom: insets.bottom + 12,
-            left: 20,
-            right: 20,
-            backgroundColor: 'rgba(18,18,22,0.82)',
-            borderRadius: 28,
-            borderWidth: 0.5,
-            borderColor: 'rgba(255,255,255,0.16)',
-            height: 64,
-            paddingBottom: 0,
-            paddingTop: 0,
+            backgroundColor: tokens.colorSurface,
+            borderTopWidth: 0.5,
+            borderTopColor: 'rgba(255,255,255,0.08)',
+            height: 56 + bottomPad,
+            paddingBottom: bottomPad,
+            paddingTop: 6,
             elevation: 0,
-            shadowColor: '#000000',
-            shadowOffset: { width: 0, height: 12 },
-            shadowOpacity: 0.65,
-            shadowRadius: 28,
-            overflow: 'hidden',
           },
-          tabBarItemStyle: { paddingVertical: 10 },
           tabBarActiveTintColor: tokens.colorBrand,
-          tabBarInactiveTintColor: 'rgba(235,235,245,0.32)',
+          tabBarInactiveTintColor: 'rgba(235,235,245,0.4)',
           tabBarLabelStyle: {
-            fontSize: 10,
+            fontSize: 11,
             fontWeight: '600',
-            letterSpacing: 0.2,
+            letterSpacing: 0.1,
             marginTop: 2,
           },
           sceneStyle: { backgroundColor: tokens.colorBackground },
@@ -49,7 +40,7 @@ export default function Layout() {
           options={{
             title: 'Pasajero',
             tabBarIcon: ({ color, focused }) => (
-              <Ionicons name={focused ? 'car' : 'car-outline'} size={22} color={color} />
+              <Ionicons name={focused ? 'car' : 'car-outline'} size={24} color={color} />
             ),
           }}
         />
@@ -58,7 +49,7 @@ export default function Layout() {
           options={{
             title: 'Comprador',
             tabBarIcon: ({ color, focused }) => (
-              <Ionicons name={focused ? 'search' : 'search-outline'} size={22} color={color} />
+              <Ionicons name={focused ? 'search' : 'search-outline'} size={24} color={color} />
             ),
           }}
         />
@@ -67,7 +58,7 @@ export default function Layout() {
           options={{
             title: 'Conductor',
             tabBarIcon: ({ color, focused }) => (
-              <Ionicons name={focused ? 'qr-code' : 'qr-code-outline'} size={22} color={color} />
+              <Ionicons name={focused ? 'qr-code' : 'qr-code-outline'} size={24} color={color} />
             ),
           }}
         />
