@@ -1,114 +1,100 @@
 # SafeCheck Perú
 
-> Verificador inteligente de vehículos usando datos oficiales del Estado peruano.
+> Revisa antes de subir: en segundos sabes si el vehículo está asegurado, si es el auto real, y tu familia sabe en cuál estás.
 
-Proyecto para **Hackathon DSC PUCP** — Tema: *Estado Peruano*
+Verificador de vehículos que combina datos oficiales del Estado peruano en un veredicto simple: 🟢 seguro · 🟡 precaución · 🔴 riesgo.
+
+Proyecto para **Hackathon DSC PUCP** — Tema: *Estado Peruano* · Equipo **MACHAZ**
 
 ---
 
 ## El problema
 
-- **18 vehículos robados por día** en Lima (Peru21)
+- **18 vehículos robados por día** en Lima
 - **+6,000 taxis informales** intervenidos en 2025 (ATU)
-- SUNARP lanzó "Alerta Clonación" en marzo 2025 por magnitud del problema
-- Comprar un vehículo usado = riesgo alto de fraude, gravámenes ocultos, robo
-
-No existe una solución unificada que proteja a los 3 actores del mercado.
+- SUNARP lanzó "Alerta Clonación" en marzo 2025
+- Verificar el SOAT hoy exige entrar a la web de APESEG o de cada aseguradora — nadie lo hace antes de subir
 
 ---
 
 ## La solución
 
-SafeCheck consulta en tiempo real datos oficiales del Estado peruano (MTC, SUNARP, APESEG, PNP) y los presenta en una interfaz simple con un score de riesgo.
+Con solo la **placa** (que el pasajero lee del vehículo, sin datos personales) la app consulta y combina:
+
+- **SOAT** → vigente, vencido o por vencer
+- **Datos del vehículo** (marca, modelo, color) → detecta placas clonadas
+- **Licencia** (modo conductor, opcional) → categoría y vigencia, con QR de "conductor verificado"
+
+El veredicto final es **el peor de las señales**, con explicación en lenguaje simple.
+
+### Función estrella — "Comparte tu viaje"
+
+Antes de subir, envías por WhatsApp una tarjeta con placa + descripción verificada del auto + hora a un contacto de confianza.
 
 ### 3 módulos
 
-| Módulo | Usuario | ¿Qué hace? |
-|--------|---------|-----------|
-| **Pasajero** | Persona que va a tomar un taxi | Verifica el taxi antes de subir |
-| **Comprador** | Persona que va a comprar un vehículo | Verifica el vehículo antes de comprar |
-| **Conductor/Vendedor** | Taxista o vendedor | Genera QR de confianza verificado |
-
-### Inputs
-
-- 📷 Foto de la placa (cámara o upload)
-- ⌨️ Número de placa escrito
-- 📄 PDF o foto del contrato de compra
-- ⌨️ DNI del vendedor / conductor
-
-### Outputs
-
-- Semáforo de riesgo: 🔴 ALTO / 🟡 MEDIO / 🟢 BAJO
-- Detalle por verificación con fuente oficial + timestamp
-- Detección de placa clonada (IA visión)
-- QR compartible con perfil verificado (conductor/vendedor)
-- Reporte en lenguaje natural generado por IA
+| Módulo | Usuario | Qué hace |
+|--------|---------|----------|
+| **Pasajero** | Quien va a tomar un taxi | Verifica el taxi antes de subir |
+| **Comprador** | Quien va a comprar un vehículo | Verifica el vehículo (+ análisis de contrato) |
+| **Conductor** | Taxista / vendedor | Genera QR de confianza que re-consulta en tiempo real |
 
 ---
 
-## Stack tecnológico
+## Stack
+
+| Capa | Tecnología |
+|------|-----------|
+| Mobile | Expo (React Native + TypeScript), expo-router |
+| Backend | FastAPI (Python 3.11+), Uvicorn, httpx, pydantic v2 |
+| Datos | **json.pe** (Bearer token) — SOAT (APESEG), placa (SUTRAN), licencia (MTC) |
+| Fallback | Scraping APESEG / MTC CITV (BeautifulSoup) cuando json.pe no tiene el dato |
+| OCR placa | EasyOCR |
+| Contratos | Claude API (`claude-sonnet-4-6`) |
+| QR | `qrcode` |
+| Integridad | SHA-256 por reporte |
+
+**Principio:** no almacenamos datos de vehículos. Cada consulta va a la fuente; cada dato muestra fuente + timestamp. El backend solo cachea en memoria por placa (TTL).
+
+---
+
+## Estructura del repo
 
 ```
-Frontend:     Streamlit
-OCR placa:    EasyOCR
-Visión IA:    YOLOv8 / CLIP (detección color/tipo vehículo)
-Contratos:    Claude API (extracción + análisis de cláusulas)
-Placa API:    placaapi.pe (datos MTC en tiempo real)
-SOAT:         APESEG (scraping)
-Rev. técnica: MTC CITV (scraping)
-SUNARP:       consultavehicular.sunarp.gob.pe
-Empresas:     latinfo.dev (SUNAT/OSCE si vendedor es empresa)
+backend/        API FastAPI (proxy json.pe + scoring + OCR + QR + contratos)
+mobile/         App Expo (pasajero / comprador / conductor)
+docs/
+  FUENTES_DATOS.md                       fuentes oficiales del Estado
+  DEMO_SCRIPT.md                         guion de demo
+  superpowers/plans/                     plan de implementación (TDD, paso a paso)
 ```
 
----
-
-## Datos del Estado usados
-
-| Fuente | Dato | Módulo |
-|--------|------|--------|
-| MTC | Marca, modelo, color, año, VIN, propietario | Todos |
-| MTC | Habilitación transporte público | Pasajero |
-| MTC | Licencia conductor, puntos demerito | Pasajero |
-| APESEG | SOAT vigente | Todos |
-| MTC CITV | Revisión técnica vigente | Todos |
-| SUNARP | Gravámenes, hipotecas, historial transferencias | Comprador |
-| PNP | Vehículo reportado como robado | Todos |
-| SAT Lima | Multas pendientes | Comprador |
-| SUNAT | RUC activo del vendedor empresa | Comprador |
-| RENIEC | DNI vendedor persona natural | Comprador |
+> `backend/` y `mobile/` se crean durante la implementación. El plan completo está en
+> [`docs/superpowers/plans/2026-06-26-safecheck-peru.md`](docs/superpowers/plans/2026-06-26-safecheck-peru.md).
 
 ---
 
-## Seguridad y veracidad de datos
+## Cómo correr
 
-- **No almacenamos datos de vehículos** — cada consulta va directo a la fuente oficial
-- Cada dato muestra: fuente + timestamp + link al portal oficial
-- QR conductor es dinámico — re-consulta en tiempo real al escanear
-- Hash SHA-256 en cada reporte para detectar adulteración
+### Backend
+```bash
+cd backend
+python3.11 -m venv .venv && . .venv/bin/activate   # requiere Python 3.11+
+pip install -e ".[dev,ocr]"
+cp .env.example .env        # set JSONPE_TOKEN, ANTHROPIC_API_KEY
+uvicorn app.main:app --reload --port 8000
+```
+
+### Mobile
+```bash
+cd mobile
+npm install
+EXPO_PUBLIC_API_URL=http://<tu-IP-LAN>:8000 npx expo start
+```
 
 ---
 
 ## Documentación
 
-- [Arquitectura técnica](docs/ARQUITECTURA.md)
+- [Plan de implementación](docs/superpowers/plans/2026-06-26-safecheck-peru.md)
 - [Fuentes de datos del Estado](docs/FUENTES_DATOS.md)
-- [Plan de desarrollo](docs/PLAN_DESARROLLO.md)
-
----
-
-## Instalación
-
-```bash
-git clone <repo>
-cd dsc_pucp_project
-pip install -r requirements.txt
-cp .env.example .env
-# Configurar API keys en .env
-streamlit run src/app.py
-```
-
----
-
-## Equipo: MACHAZ
-
-Hackathon DSC PUCP 2025 — Tema: Estado Peruano

@@ -7,14 +7,15 @@ El app consulta en tiempo real y presenta — nunca inventa ni almacena datos de
 
 ## APIs de terceros (wrappean datos oficiales)
 
-### placaapi.pe — PRINCIPAL
-- **Qué da**: 15 campos: marca, modelo, color, año, VIN, serie, motor, propietario
-- **Fuente**: MTC en tiempo real
-- **Precio**: S/0.07/consulta — 10 gratis (suficiente para demo hackathon)
-- **Formato**: JSON / XML (SOAP)
-- **URL**: https://www.placaapi.pe/
+### json.pe — PRINCIPAL
+- **Qué da**: SOAT (APESEG), datos de placa (SUTRAN), licencia (MTC) — un solo proveedor
+- **Fuente**: APESEG / SUTRAN / MTC
+- **Precio**: plan gratis 100 créditos (suficiente para demo hackathon)
+- **Formato**: JSON, auth `Authorization: Bearer <token>`
+- **URL**: https://json.pe/
+- **Nota**: shapes de respuesta se verifican contra la API en vivo (Task A3 del plan); el adapter en `backend/app/clients/jsonpe.py` aísla los nombres de campos.
 
-### latinfo.dev — Empresas vendedoras
+### latinfo.dev — Empresas vendedoras (opcional, fase posterior)
 - **Qué da**: RUC, estado SUNAT, sanciones OSCE, deudas coactivas, contratos SEACE
 - **Fuente**: SUNAT, OSCE, OEFA, SEACE
 - **Precio**: 1,000 consultas/mes gratis
@@ -88,19 +89,16 @@ El app consulta en tiempo real y presenta — nunca inventa ni almacena datos de
 
 ```
 FASE 1 — MVP hackathon:
-  ✅ placaapi.pe          → datos básicos vehículo
-  ✅ APESEG scraping      → SOAT
-  ✅ MTC CITV scraping    → revisión técnica
-  ✅ EasyOCR              → leer placa de foto
+  ✅ json.pe             → SOAT + datos vehículo + licencia
+  ✅ APESEG scraping     → SOAT (fallback si json.pe no lo trae)
+  ✅ MTC CITV scraping   → revisión técnica (fallback)
+  ✅ EasyOCR             → leer placa de foto
+  ✅ Claude API          → análisis de contrato (módulo comprador)
+  ✅ QR dinámico         → módulo conductor
 
-FASE 2 — Demo completo:
-  ⬜ SUNARP scraping      → gravámenes
+FASE 2 — Plan aparte (requiere portal en vivo / modelo ML):
+  ⬜ SUNARP scraping      → gravámenes / Alerta Robo (Playwright + CAPTCHA)
   ⬜ SAT Lima scraping    → multas
-  ⬜ apiperu.dev          → DNI vendedor
-  ⬜ YOLOv8               → detección color/tipo (anti-clonación)
-
-FASE 3 — Bonus:
-  ⬜ Claude API           → análisis contrato
-  ⬜ latinfo.dev          → vendedor empresa
-  ⬜ QR dinámico          → módulo conductor
+  ⬜ latinfo.dev          → vendedor empresa (KYB)
+  ⬜ YOLOv8 / CLIP        → detección color/tipo (anti-clonación visual)
 ```
