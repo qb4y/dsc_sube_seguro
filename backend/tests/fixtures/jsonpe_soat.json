@@ -1,5 +1,8 @@
 {
-  "vigente": true,
-  "fechaVencimiento": "2027-01-01T00:00:00",
-  "aseguradora": "Rimac"
+  "success": true,
+  "data": {
+    "estado": "VIGENTE",
+    "fecha_fin": "31/12/2026",
+    "nombre_compania": "Rimac Seguros"
+  }
 }

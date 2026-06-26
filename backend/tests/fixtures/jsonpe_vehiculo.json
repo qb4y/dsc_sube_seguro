@@ -1,6 +1,9 @@
 {
-  "marca": "Toyota",
-  "modelo": "Yaris",
-  "color": "Blanco",
-  "año": 2020
+  "success": true,
+  "data": {
+    "marca": "Toyota",
+    "modelo": "Yaris",
+    "color": "Blanco",
+    "anio": 2020
+  }
 }

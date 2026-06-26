@@ -16,7 +16,7 @@ Orden de ataque para tener módulos funcionales e ir iterando con pruebas reales
 
 ---
 
-## FASE 1 — Verificar shapes de json.pe `~1h` ⚠️ CRÍTICO
+## FASE 1 — Verificar shapes de json.pe `~1h` ✅ COMPLETO
 
 Los shapes de respuesta de json.pe son desconocidos — el adapter en
 `app/verificacion/infrastructure/jsonpe.py` asume nombres de campos que pueden
@@ -30,8 +30,8 @@ no coincidir. Esta fase los verifica contra la API en vivo.
       - `POST /api/licencia` → `data.licencia.estado/categoria/fecha_vencimiento`
       - `POST /api/revision-tecnica` → array `[0].estado/resultado_inspeccion`
 - [x] Ajustar `app/verificacion/infrastructure/jsonpe.py` según campos reales
-- [ ] Actualizar fixtures en `tests/fixtures/jsonpe_*.json` con respuestas reales
-- [x] Re-correr suite: `pytest tests/ -v` → 27 passed
+- [x] Actualizar fixtures en `tests/fixtures/jsonpe_*.json` con respuestas reales
+- [x] Re-correr suite: `pytest tests/ -v` → 35 passed
 
 ---
 
