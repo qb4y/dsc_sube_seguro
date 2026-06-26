@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Animated, ScrollView, View, Text, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
-import { tokens, spacing, radius, type } from '../src/lib/tokens';
+import { tokens, spacing, radius, type, fontMono } from '../src/lib/tokens';
 import { toVerdict } from '../src/lib/colores';
 import { useFadeSlideIn, useShake } from '../src/lib/animations';
 import { GlassCard } from '../src/components/GlassCard';
@@ -18,6 +18,19 @@ import { EmptyState } from '../src/components/EmptyState';
 import { verificarPasajero, type Veredicto } from '../src/api/verificar';
 import { ocrPlaca } from '../src/api/ocr';
 
+// ── Mock data for testing (use plate BCD-456 to trigger) ──
+const MOCK_VEREDICTO: Veredicto = {
+  color: 'verde',
+  resumen: 'Vehículo en regla',
+  placa: 'BCD-456',
+  checks: [
+    { clave: 'soat', etiqueta: 'SOAT', color: 'verde', detalle: 'Vigente hasta 15/03/2027', fuente: 'SBS', consultado_en: new Date().toISOString() },
+    { clave: 'revision_tecnica', etiqueta: 'Revisión Técnica', color: 'verde', detalle: 'Aprobada hasta 20/12/2026', fuente: 'MTC', consultado_en: new Date().toISOString() },
+    { clave: 'vehiculo', etiqueta: 'Datos del vehículo', color: 'verde', detalle: 'TOYOTA Corolla Blanco 2021', fuente: 'SUNARP', consultado_en: new Date().toISOString() },
+    { clave: 'papeletas', etiqueta: 'Papeletas', color: 'verde', detalle: 'Sin papeletas pendientes', fuente: 'SAT', consultado_en: new Date().toISOString() },
+  ],
+};
+
 export default function Pasajero() {
   const insets = useSafeAreaInsets();
   const [placa, setPlaca] = useState('');
@@ -25,6 +38,16 @@ export default function Pasajero() {
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState('');
   const [vehicleMatch, setVehicleMatch] = useState<boolean | null>(null);
+
+  // Plate badge animation (slides in when results appear)
+  const badgeAnim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    if (veredicto) {
+      Animated.spring(badgeAnim, { toValue: 1, useNativeDriver: true, tension: 80, friction: 10 }).start();
+    } else {
+      badgeAnim.setValue(0);
+    }
+  }, [veredicto]);
 
   const heroAnim = useFadeSlideIn(0);
   const cardAnim = useFadeSlideIn(80);
@@ -37,7 +60,10 @@ export default function Pasajero() {
     setVehicleMatch(null);
     setCargando(true);
     try {
-      const v = await verificarPasajero(placa.trim().toUpperCase());
+      // Use mock data for testing — type BCD-456
+      const v = placa.trim().toUpperCase() === 'BCD-456'
+        ? await new Promise<Veredicto>((r) => setTimeout(() => r({ ...MOCK_VEREDICTO, placa: placa.trim().toUpperCase() }), 1200))
+        : await verificarPasajero(placa.trim().toUpperCase());
       setVeredicto(v);
       Haptics.notificationAsync(
         v.color === 'verde'
@@ -87,10 +113,31 @@ export default function Pasajero() {
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 112 }]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Hero */}
+        {/* Hero + plate badge */}
         <Animated.View style={[styles.hero, heroAnim]}>
-          <View style={styles.heroIconWrap}>
-            <Ionicons name="shield-checkmark" size={28} color={tokens.colorBrand} />
+          <View style={styles.heroRow}>
+            <View style={styles.heroIconWrap}>
+              <Ionicons name="shield-checkmark" size={28} color={tokens.colorBrand} />
+            </View>
+            {/* Plate badge — appears top-right when results load */}
+            {veredicto && (
+              <Animated.View style={[
+                styles.plateBadge,
+                {
+                  opacity: badgeAnim,
+                  transform: [
+                    { translateX: badgeAnim.interpolate({ inputRange: [0, 1], outputRange: [40, 0] }) },
+                    { scale: badgeAnim.interpolate({ inputRange: [0, 1], outputRange: [0.7, 1] }) },
+                  ],
+                },
+              ]}>
+                <Text style={styles.plateBadgeText}>{veredicto.placa}</Text>
+                <View style={[
+                  styles.plateBadgeDot,
+                  { backgroundColor: veredicto.color === 'verde' ? tokens.colorSuccess : veredicto.color === 'rojo' ? '#FF453A' : tokens.colorWarning },
+                ]} />
+              </Animated.View>
+            )}
           </View>
           <Text style={styles.heroTitle}>SubeSeguro</Text>
           <Text style={styles.heroSub}>Verifica antes de subir</Text>
@@ -176,12 +223,42 @@ const styles = StyleSheet.create({
   },
   content: { paddingHorizontal: spacing.lg },
 
-  hero: { alignItems: 'flex-start', paddingTop: spacing.xl, paddingBottom: spacing.xl },
+  hero: { paddingTop: spacing.xl, paddingBottom: spacing.xl },
+  heroRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginBottom: 16,
+  },
+  plateBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(44,44,46,0.8)',
+    borderRadius: radius.md,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderWidth: 0.5,
+    borderColor: 'rgba(255,255,255,0.12)',
+  },
+  plateBadgeText: {
+    fontFamily: fontMono,
+    fontSize: 15,
+    fontWeight: '700',
+    color: tokens.colorText,
+    letterSpacing: 2,
+  },
+  plateBadgeDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
   heroIconWrap: {
     width: 56, height: 56, borderRadius: radius.lg,
     backgroundColor: tokens.colorBrandTint,
     borderWidth: 0.5, borderColor: tokens.colorBrandBorder,
-    alignItems: 'center', justifyContent: 'center', marginBottom: 16,
+    alignItems: 'center', justifyContent: 'center',
     shadowColor: tokens.colorBrand,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.45, shadowRadius: 14,

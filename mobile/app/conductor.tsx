@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
   heroTitle: { ...type.largeTitle, color: tokens.colorText, marginBottom: 4 },
   heroSub:   { ...type.title3, color: tokens.colorTextSecondary, fontWeight: '400' },
 
-  card: { padding: spacing.lg, gap: spacing.md, marginBottom: spacing.lg },
+  card: { padding: spacing.lg, gap: spacing.lg, marginBottom: spacing.lg },
   cardLabel: {
     ...type.footnote, color: tokens.colorTextMuted,
     fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.8,

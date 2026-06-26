@@ -16,6 +16,23 @@ export function PlateInput({
   const [focused, setFocused] = useState(false);
   const inputRef = useRef<TextInput>(null);
 
+  const formatPlate = (t: string) => {
+    // Strip everything except letters and digits
+    const clean = t.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+    // Auto-insert hyphen after 3 chars
+    if (clean.length > 3) {
+      return clean.slice(0, 3) + '-' + clean.slice(3);
+    }
+    return clean;
+  };
+
+  const handleChange = (t: string) => {
+    const formatted = formatPlate(t);
+    onChange(formatted);
+  };
+
+  const isValid = /^[A-Z]{3}-[0-9]{3}$/.test(value);
+
   return (
     <Pressable onPress={() => inputRef.current?.focus()} style={styles.wrapper}>
       <View
@@ -34,16 +51,14 @@ export function PlateInput({
           testID="plate-input"
           style={styles.input}
           value={value}
-          onChangeText={(t) =>
-            onChange(t.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8))
-          }
+          onChangeText={handleChange}
           onSubmitEditing={onSubmit}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           placeholder={placeholder}
           placeholderTextColor={tokens.colorTextMuted}
           autoCapitalize="characters"
-          maxLength={8}
+          maxLength={7}
           editable={!loading}
           returnKeyType="search"
           selectionColor={tokens.colorBrand}
@@ -54,7 +69,9 @@ export function PlateInput({
         )}
       </View>
 
-      <Text style={styles.hint}>Ingresa hasta 8 caracteres</Text>
+      <Text style={[styles.hint, value.length > 0 && !isValid && styles.hintWarn]}>
+        {value.length > 0 && !isValid ? 'Formato: ABC-123' : 'Placa peruana · 3 letras + 3 números'}
+      </Text>
     </Pressable>
   );
 }
@@ -104,5 +121,8 @@ const styles = StyleSheet.create({
     ...type.caption2,
     color: tokens.colorTextMuted,
     marginLeft: 4,
+  },
+  hintWarn: {
+    color: tokens.colorWarning,
   },
 });
