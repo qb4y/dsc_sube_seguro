@@ -72,7 +72,7 @@ export default function Comprador() {
 
       <ScrollView
         style={{ flex: 1, paddingTop: insets.top }}
-        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 80 }]}
+        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100 }]}
         showsVerticalScrollIndicator={false}
       >
         {/* Hero */}
@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
   heroTitle: { ...type.largeTitle, color: tokens.colorText, marginBottom: 4 },
   heroSub:   { ...type.title3, color: tokens.colorTextSecondary, fontWeight: '400' },
 
-  card: { padding: spacing.lg, gap: spacing.lg, marginBottom: spacing.lg },
+  card: { padding: spacing.xl, gap: spacing.xl, marginBottom: spacing.lg },
   cardLabel: {
     ...type.footnote, color: tokens.colorTextMuted,
     fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.8,

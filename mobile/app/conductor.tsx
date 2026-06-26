@@ -46,7 +46,7 @@ export default function Conductor() {
 
       <ScrollView
         style={{ flex: 1, paddingTop: insets.top }}
-        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 80 }]}
+        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100 }]}
         showsVerticalScrollIndicator={false}
       >
         {/* Hero */}

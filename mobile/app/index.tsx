@@ -39,18 +39,18 @@ export default function Pasajero() {
   const [error, setError] = useState('');
   const [vehicleMatch, setVehicleMatch] = useState<boolean | null>(null);
 
-  // Card collapse + badge animation when results appear
+  // Card show/hide + badge animation
   const badgeAnim = useRef(new Animated.Value(0)).current;
-  const cardCollapseAnim = useRef(new Animated.Value(1)).current;
+  const cardShowAnim = useRef(new Animated.Value(1)).current;
   useEffect(() => {
     if (veredicto) {
       Animated.parallel([
         Animated.spring(badgeAnim, { toValue: 1, useNativeDriver: true, tension: 80, friction: 10 }),
-        Animated.timing(cardCollapseAnim, { toValue: 0, duration: 350, useNativeDriver: true }),
+        Animated.timing(cardShowAnim, { toValue: 0, duration: 300, useNativeDriver: false }),
       ]).start();
     } else {
       badgeAnim.setValue(0);
-      cardCollapseAnim.setValue(1);
+      Animated.timing(cardShowAnim, { toValue: 1, duration: 300, useNativeDriver: false }).start();
     }
   }, [veredicto]);
 
@@ -115,7 +115,7 @@ export default function Pasajero() {
 
       <ScrollView
         style={{ flex: 1, paddingTop: insets.top }}
-        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 80 }]}
+        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100 }]}
         showsVerticalScrollIndicator={false}
       >
         {/* Hero + plate badge */}
@@ -151,33 +151,29 @@ export default function Pasajero() {
           <Text style={styles.heroSub}>Verifica antes de subir</Text>
         </Animated.View>
 
-        {/* Input card — collapses when results appear */}
-        {!veredicto && (
-          <Animated.View style={[cardAnim, {
-            opacity: cardCollapseAnim,
-            transform: [
-              ...(cardAnim.transform ?? []),
-              { scale: cardCollapseAnim.interpolate({ inputRange: [0, 1], outputRange: [0.95, 1] }) },
-            ],
-          }]}>
-            <GlassCard style={styles.card}>
-              <Text style={styles.cardLabel}>Placa del vehículo</Text>
-              <PlateInput value={placa} onChange={setPlaca} onSubmit={verificar} loading={cargando} />
-              <View style={styles.buttonRow}>
-                <View style={{ flex: 1 }}>
-                  <Button onPress={verificar} loading={cargando} disabled={!placa.trim()}>
-                    Verificar
-                  </Button>
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Button variant="ghost" onPress={tomarFoto} disabled={cargando}>
-                    Usar cámara
-                  </Button>
-                </View>
+        {/* Input card — collapses when results appear, stays mounted */}
+        <Animated.View style={[cardAnim, {
+          opacity: cardShowAnim,
+          maxHeight: cardShowAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 300] }),
+          overflow: 'hidden',
+        }]}>
+          <GlassCard style={styles.card}>
+            <Text style={styles.cardLabel}>Placa del vehículo</Text>
+            <PlateInput value={placa} onChange={setPlaca} onSubmit={verificar} loading={cargando} />
+            <View style={styles.buttonRow}>
+              <View style={{ flex: 1 }}>
+                <Button onPress={verificar} loading={cargando} disabled={!placa.trim()}>
+                  Verificar
+                </Button>
               </View>
-            </GlassCard>
-          </Animated.View>
-        )}
+              <View style={{ flex: 1 }}>
+                <Button variant="ghost" onPress={tomarFoto} disabled={cargando}>
+                  Usar cámara
+                </Button>
+              </View>
+            </View>
+          </GlassCard>
+        </Animated.View>
 
         {/* Error */}
         {error !== '' && (
