@@ -1,7 +1,6 @@
 import React from 'react';
 import { Animated, View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { BlurView } from 'expo-blur';
 import {
   tokens, verdictColors, verdictBorders, verdictLabels,
   radius, type, fontMono, type VerdictColor,
@@ -39,20 +38,14 @@ export function VerdictCard({ verdict, placa }: VerdictCardProps) {
   return (
     <Animated.View
       testID="verdict-card"
-      style={[styles.outer, { transform: [{ scale }], opacity }]}
+      style={[styles.outer, { borderColor: border, transform: [{ scale }], opacity }]}
     >
-      {/* Blur backdrop */}
-      <BlurView
-        intensity={60}
-        tint="systemChromeMaterialDark"
-        style={[StyleSheet.absoluteFill, { borderRadius: radius.xxl }]}
-      />
+      {/* Glass fill layers */}
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: TINTS[verdict], borderRadius: radius.xxl }]} />
+      <View style={[StyleSheet.absoluteFill, styles.glassFill, { borderRadius: radius.xxl }]} />
 
-      {/* Color tint overlay */}
-      <View style={[StyleSheet.absoluteFill, styles.tintLayer, { backgroundColor: TINTS[verdict], borderRadius: radius.xxl }]} />
-
-      {/* Specular top highlight */}
-      <View style={[styles.specularTop, { borderColor: border }]} />
+      {/* Specular top */}
+      <View style={styles.specularTop} />
 
       {/* Content */}
       <View style={styles.content}>
@@ -63,7 +56,7 @@ export function VerdictCard({ verdict, placa }: VerdictCardProps) {
         <Text style={[styles.label, { color }]}>{verdictLabels[verdict]}</Text>
         <Text style={styles.subtitle}>{SUBTITLES[verdict]}</Text>
 
-        <View style={[styles.placaPill, { borderColor: border }]}>
+        <View style={[styles.placaPill, { borderColor: border, backgroundColor: 'rgba(0,0,0,0.3)' }]}>
           <Text style={[styles.placa, { color: tokens.colorTextSecondary }]}>{placa}</Text>
         </View>
       </View>
@@ -75,21 +68,22 @@ const styles = StyleSheet.create({
   outer: {
     borderRadius: radius.xxl,
     borderWidth: 0.5,
-    borderColor: 'rgba(255,255,255,0.16)',
     overflow: 'hidden',
     marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 12 },
     shadowOpacity: 0.5,
     shadowRadius: 28,
+    elevation: 16,
   },
-  tintLayer: {},
+  glassFill: {
+    backgroundColor: 'rgba(255,255,255,0.025)',
+  },
   specularTop: {
     position: 'absolute',
     top: 0, left: 0, right: 0,
     height: 1,
-    backgroundColor: 'rgba(255,255,255,0.3)',
-    borderTopWidth: 0,
+    backgroundColor: 'rgba(255,255,255,0.28)',
     zIndex: 2,
   },
   content: {
@@ -111,22 +105,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
   },
-  label: {
-    ...type.title1,
-    marginBottom: 4,
-    letterSpacing: -0.5,
-  },
-  subtitle: {
-    ...type.subheadline,
-    color: tokens.colorTextSecondary,
-    marginBottom: 16,
-  },
+  label: { ...type.title1, marginBottom: 4, letterSpacing: -0.5 },
+  subtitle: { ...type.subheadline, color: tokens.colorTextSecondary, marginBottom: 16 },
   placaPill: {
     borderWidth: 0.5,
     borderRadius: radius.pill,
     paddingHorizontal: 20,
     paddingVertical: 9,
-    backgroundColor: 'rgba(0,0,0,0.25)',
   },
   placa: {
     fontSize: 18,

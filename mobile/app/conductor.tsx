@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Animated, ScrollView, View, Text, TextInput, Image, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { tokens, spacing, radius, type, fontMono } from '../src/lib/tokens';
 import { useFadeSlideIn, useScaleBounce } from '../src/lib/animations';
@@ -43,11 +42,7 @@ export default function Conductor() {
 
   return (
     <View style={styles.root}>
-      <LinearGradient
-        colors={['rgba(47,214,198,0.07)', 'rgba(47,214,198,0.02)', 'transparent']}
-        locations={[0, 0.35, 1]}
-        style={styles.ambientGrad}
-      />
+      <View pointerEvents="none" style={styles.ambientGlow} />
 
       <ScrollView
         style={{ flex: 1, paddingTop: insets.top }}
@@ -56,12 +51,9 @@ export default function Conductor() {
       >
         {/* Hero */}
         <Animated.View style={[styles.hero, heroAnim]}>
-          <LinearGradient
-            colors={['rgba(47,214,198,0.18)', 'rgba(47,214,198,0.06)']}
-            style={styles.heroIconWrap}
-          >
+          <View style={styles.heroIconWrap}>
             <Ionicons name="qr-code" size={26} color={tokens.colorBrand} />
-          </LinearGradient>
+          </View>
           <Text style={styles.heroTitle}>Conductor</Text>
           <Text style={styles.heroSub}>Genera tu QR verificado</Text>
         </Animated.View>
@@ -121,16 +113,13 @@ export default function Conductor() {
 
               <View style={styles.qrSep} />
 
-              {/* QR image with gradient frame */}
+              {/* QR image */}
               <View style={styles.qrImageContainer}>
-                <LinearGradient
-                  colors={[tokens.colorBrandTint, 'rgba(47,214,198,0.03)']}
-                  style={styles.qrGradFrame}
-                >
+                <View style={[styles.qrGradFrame, { backgroundColor: tokens.colorBrandTint, borderColor: tokens.colorBrandBorder }]}>
                   <View style={styles.qrImageWrap}>
                     <Image style={styles.qr} source={{ uri: qrUrl }} resizeMode="contain" />
                   </View>
-                </LinearGradient>
+                </View>
               </View>
 
               {/* Meta */}
@@ -150,16 +139,25 @@ export default function Conductor() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: tokens.colorBackground },
-  ambientGrad: { position: 'absolute', top: 0, left: 0, right: 0, height: 320 },
+  ambientGlow: {
+    position: 'absolute', top: -80, alignSelf: 'center',
+    width: 340, height: 340, borderRadius: 170,
+    backgroundColor: 'transparent',
+    shadowColor: tokens.colorBrand,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.18, shadowRadius: 100,
+  },
   content: { paddingHorizontal: spacing.lg },
 
   hero: { alignItems: 'flex-start', paddingTop: spacing.xl, paddingBottom: spacing.xl },
   heroIconWrap: {
     width: 56, height: 56, borderRadius: radius.lg,
-    alignItems: 'center', justifyContent: 'center', marginBottom: 16,
+    backgroundColor: tokens.colorBrandTint,
     borderWidth: 0.5, borderColor: tokens.colorBrandBorder,
-    shadowColor: tokens.colorBrand, shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4, shadowRadius: 12,
+    alignItems: 'center', justifyContent: 'center', marginBottom: 16,
+    shadowColor: tokens.colorBrand,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.45, shadowRadius: 14,
   },
   heroTitle: { ...type.largeTitle, color: tokens.colorText, marginBottom: 4 },
   heroSub:   { ...type.title3, color: tokens.colorTextSecondary, fontWeight: '400' },
@@ -170,7 +168,7 @@ const styles = StyleSheet.create({
     fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.8,
   },
   dniInput: {
-    backgroundColor: 'rgba(44,44,46,0.5)',
+    backgroundColor: 'rgba(44,44,46,0.55)',
     borderWidth: 1, borderColor: tokens.colorLine,
     borderRadius: radius.lg,
     paddingHorizontal: 16, paddingVertical: 16,
@@ -204,11 +202,11 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   qrHeaderText: { ...type.headline, color: tokens.colorSuccess },
-  qrSep: { height: 0.5, backgroundColor: 'rgba(255,255,255,0.1)', marginHorizontal: 0 },
+  qrSep: { height: 0.5, backgroundColor: 'rgba(255,255,255,0.08)' },
   qrImageContainer: { padding: 24, alignItems: 'center' },
   qrGradFrame: {
     borderRadius: radius.xl, padding: 16,
-    borderWidth: 0.5, borderColor: tokens.colorBrandBorder,
+    borderWidth: 0.5,
   },
   qrImageWrap: {
     backgroundColor: '#FFFFFF',
@@ -216,8 +214,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
+    shadowOpacity: 0.3, shadowRadius: 12,
   },
   qr: { width: 200, height: 200 },
   qrMeta: { padding: 16, paddingTop: 4, gap: 6 },

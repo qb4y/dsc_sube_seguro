@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Animated, ScrollView, View, Text, StyleSheet, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import * as DocumentPicker from 'expo-document-picker';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
@@ -69,11 +68,7 @@ export default function Comprador() {
 
   return (
     <View style={styles.root}>
-      <LinearGradient
-        colors={['rgba(47,214,198,0.07)', 'rgba(47,214,198,0.02)', 'transparent']}
-        locations={[0, 0.35, 1]}
-        style={styles.ambientGrad}
-      />
+      <View pointerEvents="none" style={styles.ambientGlow} />
 
       <ScrollView
         style={{ flex: 1, paddingTop: insets.top }}
@@ -82,12 +77,9 @@ export default function Comprador() {
       >
         {/* Hero */}
         <Animated.View style={[styles.hero, heroAnim]}>
-          <LinearGradient
-            colors={['rgba(47,214,198,0.18)', 'rgba(47,214,198,0.06)']}
-            style={styles.heroIconWrap}
-          >
+          <View style={styles.heroIconWrap}>
             <Ionicons name="search" size={26} color={tokens.colorBrand} />
-          </LinearGradient>
+          </View>
           <Text style={styles.heroTitle}>Comprador</Text>
           <Text style={styles.heroSub}>Verifica antes de comprar</Text>
         </Animated.View>
@@ -162,16 +154,25 @@ export default function Comprador() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: tokens.colorBackground },
-  ambientGrad: { position: 'absolute', top: 0, left: 0, right: 0, height: 320 },
+  ambientGlow: {
+    position: 'absolute', top: -80, alignSelf: 'center',
+    width: 340, height: 340, borderRadius: 170,
+    backgroundColor: 'transparent',
+    shadowColor: tokens.colorBrand,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.18, shadowRadius: 100,
+  },
   content: { paddingHorizontal: spacing.lg },
 
   hero: { alignItems: 'flex-start', paddingTop: spacing.xl, paddingBottom: spacing.xl },
   heroIconWrap: {
     width: 56, height: 56, borderRadius: radius.lg,
-    alignItems: 'center', justifyContent: 'center', marginBottom: 16,
+    backgroundColor: tokens.colorBrandTint,
     borderWidth: 0.5, borderColor: tokens.colorBrandBorder,
-    shadowColor: tokens.colorBrand, shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4, shadowRadius: 12,
+    alignItems: 'center', justifyContent: 'center', marginBottom: 16,
+    shadowColor: tokens.colorBrand,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.45, shadowRadius: 14,
   },
   heroTitle: { ...type.largeTitle, color: tokens.colorText, marginBottom: 4 },
   heroSub:   { ...type.title3, color: tokens.colorTextSecondary, fontWeight: '400' },
@@ -183,7 +184,7 @@ const styles = StyleSheet.create({
   },
   attachBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
-    backgroundColor: 'rgba(44,44,46,0.5)',
+    backgroundColor: 'rgba(44,44,46,0.55)',
     borderWidth: 0.5, borderColor: tokens.colorLine,
     borderRadius: radius.lg, padding: 14, minHeight: 48,
   },
