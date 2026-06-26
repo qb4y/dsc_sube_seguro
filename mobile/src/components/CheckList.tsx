@@ -1,29 +1,35 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { Animated, View, StyleSheet } from 'react-native';
 import { StatusRow } from './StatusRow';
 import { toVerdict } from '../lib/colores';
 import { tokens, radius } from '../lib/tokens';
+import { useFadeSlideIn } from '../lib/animations';
 import type { Check } from '../api/verificar';
+
+function AnimatedRow({ c, index, total }: { c: Check; index: number; total: number }) {
+  const anim = useFadeSlideIn(index * 60, 16);
+  return (
+    <Animated.View
+      style={[
+        anim,
+        index === total - 1 && styles.lastCellWrap,
+      ]}
+    >
+      <StatusRow
+        verdict={toVerdict(c.color)}
+        title={c.etiqueta}
+        big={c.detalle}
+        sub={`${c.fuente} · ${c.consultado_en}`}
+      />
+    </Animated.View>
+  );
+}
 
 export function CheckList({ checks }: { checks: Check[] }) {
   return (
     <View style={styles.container}>
       {checks.map((c, i) => (
-        <View
-          key={c.clave}
-          style={[
-            styles.cellWrap,
-            i === 0 && styles.first,
-            i === checks.length - 1 && styles.last,
-          ]}
-        >
-          <StatusRow
-            verdict={toVerdict(c.color)}
-            title={c.etiqueta}
-            big={c.detalle}
-            sub={`${c.fuente} · ${c.consultado_en}`}
-          />
-        </View>
+        <AnimatedRow key={c.clave} c={c} index={i} total={checks.length} />
       ))}
     </View>
   );
@@ -37,13 +43,9 @@ const styles = StyleSheet.create({
     borderColor: tokens.colorLine,
     marginBottom: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
   },
-  cellWrap: {},
-  first: {},
-  last: {
-    borderBottomWidth: 0,
-  },
+  lastCellWrap: {},
 });

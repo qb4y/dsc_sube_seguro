@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Pressable, Text, StyleSheet, View } from 'react-native';
+import { Animated, Pressable, Text, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Linking from 'expo-linking';
 import { tokens, radius, type, colorWhatsApp } from '../lib/tokens';
+import { useSpringPress } from '../lib/animations';
 import { construirMensaje, urlWhatsapp } from '../lib/whatsapp';
 
 export interface ShareButtonProps {
@@ -13,6 +14,7 @@ export interface ShareButtonProps {
 
 export function ShareButton({ placa, descripcion, hora }: ShareButtonProps) {
   const [shared, setShared] = useState(false);
+  const { scale, onPressIn, onPressOut } = useSpringPress();
 
   const onPress = () => {
     const url = urlWhatsapp(construirMensaje({ placa, descripcion, hora }));
@@ -23,23 +25,22 @@ export function ShareButton({ placa, descripcion, hora }: ShareButtonProps) {
   return (
     <Pressable
       testID="share-button"
-      style={({ pressed }) => [
-        styles.btn,
-        shared && styles.btnShared,
-        pressed && styles.pressed,
-      ]}
       onPress={onPress}
+      onPressIn={onPressIn}
+      onPressOut={onPressOut}
     >
-      <View style={styles.inner}>
-        <Ionicons
-          name={shared ? 'checkmark-circle' : 'logo-whatsapp'}
-          size={20}
-          color={shared ? tokens.colorTextMuted : '#fff'}
-        />
-        <Text style={[styles.text, shared && styles.textShared]}>
-          {shared ? 'Viaje compartido' : 'Compartir viaje por WhatsApp'}
-        </Text>
-      </View>
+      <Animated.View style={[styles.btn, shared && styles.btnShared, { transform: [{ scale }] }]}>
+        <View style={styles.inner}>
+          <Ionicons
+            name={shared ? 'checkmark-circle' : 'logo-whatsapp'}
+            size={20}
+            color={shared ? tokens.colorTextMuted : '#fff'}
+          />
+          <Text style={[styles.text, shared && styles.textShared]}>
+            {shared ? 'Viaje compartido' : 'Compartir viaje por WhatsApp'}
+          </Text>
+        </View>
+      </Animated.View>
     </Pressable>
   );
 }
@@ -48,13 +49,11 @@ const styles = StyleSheet.create({
   btn: {
     backgroundColor: colorWhatsApp,
     borderRadius: radius.xl,
-    minHeight: 52,
-    justifyContent: 'center',
     marginTop: 12,
     shadowColor: colorWhatsApp,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
   },
   btnShared: {
     backgroundColor: tokens.colorSurface,
@@ -62,13 +61,14 @@ const styles = StyleSheet.create({
     borderColor: tokens.colorLine,
     shadowOpacity: 0,
   },
-  pressed: { opacity: 0.8, transform: [{ scale: 0.98 }] },
   inner: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,
-    padding: 14,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    minHeight: 52,
   },
   text: { ...type.headline, color: '#FFFFFF', fontWeight: '700' },
   textShared: { color: tokens.colorTextMuted },

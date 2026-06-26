@@ -1,8 +1,21 @@
+import React from 'react';
+import { StyleSheet } from 'react-native';
 import { Tabs } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { tokens } from '../src/lib/tokens';
+
+function TabBarGlass() {
+  return (
+    <BlurView
+      intensity={70}
+      tint="systemChromeMaterialDark"
+      style={StyleSheet.absoluteFill}
+    />
+  );
+}
 
 export default function Layout() {
   const insets = useSafeAreaInsets();
@@ -13,29 +26,29 @@ export default function Layout() {
       <Tabs
         screenOptions={{
           headerShown: false,
+          tabBarBackground: () => <TabBarGlass />,
           tabBarStyle: {
             position: 'absolute',
             bottom: insets.bottom + 12,
             left: 20,
             right: 20,
-            backgroundColor: tokens.colorSurfaceGlass,
+            backgroundColor: 'rgba(12,12,16,0.35)',
             borderRadius: 28,
             borderWidth: 0.5,
-            borderColor: tokens.colorLine,
+            borderColor: 'rgba(255,255,255,0.18)',
             height: 64,
             paddingBottom: 0,
             paddingTop: 0,
             elevation: 0,
             shadowColor: '#000000',
-            shadowOffset: { width: 0, height: 8 },
-            shadowOpacity: 0.5,
-            shadowRadius: 24,
+            shadowOffset: { width: 0, height: 12 },
+            shadowOpacity: 0.6,
+            shadowRadius: 28,
+            overflow: 'hidden',
           },
-          tabBarItemStyle: {
-            paddingVertical: 10,
-          },
+          tabBarItemStyle: { paddingVertical: 10 },
           tabBarActiveTintColor: tokens.colorBrand,
-          tabBarInactiveTintColor: tokens.colorTextMuted,
+          tabBarInactiveTintColor: 'rgba(235,235,245,0.35)',
           tabBarLabelStyle: {
             fontSize: 10,
             fontWeight: '600',
@@ -50,11 +63,7 @@ export default function Layout() {
           options={{
             title: 'Pasajero',
             tabBarIcon: ({ color, focused }) => (
-              <Ionicons
-                name={focused ? 'car' : 'car-outline'}
-                size={22}
-                color={color}
-              />
+              <Ionicons name={focused ? 'car' : 'car-outline'} size={22} color={color} />
             ),
           }}
         />
@@ -63,11 +72,7 @@ export default function Layout() {
           options={{
             title: 'Comprador',
             tabBarIcon: ({ color, focused }) => (
-              <Ionicons
-                name={focused ? 'search' : 'search-outline'}
-                size={22}
-                color={color}
-              />
+              <Ionicons name={focused ? 'search' : 'search-outline'} size={22} color={color} />
             ),
           }}
         />
@@ -76,11 +81,7 @@ export default function Layout() {
           options={{
             title: 'Conductor',
             tabBarIcon: ({ color, focused }) => (
-              <Ionicons
-                name={focused ? 'qr-code' : 'qr-code-outline'}
-                size={22}
-                color={color}
-              />
+              <Ionicons name={focused ? 'qr-code' : 'qr-code-outline'} size={22} color={color} />
             ),
           }}
         />

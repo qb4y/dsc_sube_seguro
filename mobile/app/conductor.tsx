@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
-import { ScrollView, View, Text, TextInput, Image, StyleSheet } from 'react-native';
+import { Animated, ScrollView, View, Text, TextInput, Image, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { tokens, spacing, radius, type, fontMono } from '../src/lib/tokens';
+import { useFadeSlideIn, useScaleBounce } from '../src/lib/animations';
+import { GlassCard } from '../src/components/GlassCard';
 import { PlateInput } from '../src/components/PlateInput';
 import { Button } from '../src/components/Button';
 import { crearQrConductor } from '../src/api/verificar';
@@ -18,6 +21,10 @@ export default function Conductor() {
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState('');
   const [focused, setFocused] = useState(false);
+
+  const heroAnim = useFadeSlideIn(0);
+  const cardAnim = useFadeSlideIn(80);
+  const { scale: qrScale, opacity: qrOpacity } = useScaleBounce(qrUrl !== '');
 
   const generar = async () => {
     if (!placa.trim() || !dni.trim()) return;
@@ -35,225 +42,188 @@ export default function Conductor() {
   };
 
   return (
-    <ScrollView
-      style={[styles.scroll, { paddingTop: insets.top }]}
-      contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 110 }]}
-      showsVerticalScrollIndicator={false}
-    >
-      {/* Hero */}
-      <View style={styles.hero}>
-        <View style={styles.heroIcon}>
-          <Ionicons name="qr-code" size={26} color={tokens.colorBrand} />
-        </View>
-        <Text style={styles.heroTitle}>Conductor</Text>
-        <Text style={styles.heroSub}>Genera tu QR verificado</Text>
-      </View>
+    <View style={styles.root}>
+      <LinearGradient
+        colors={['rgba(47,214,198,0.07)', 'rgba(47,214,198,0.02)', 'transparent']}
+        locations={[0, 0.35, 1]}
+        style={styles.ambientGrad}
+      />
 
-      {/* Input card */}
-      <View style={styles.card}>
-        <Text style={styles.cardLabel}>Datos del conductor</Text>
+      <ScrollView
+        style={{ flex: 1, paddingTop: insets.top }}
+        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 112 }]}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Hero */}
+        <Animated.View style={[styles.hero, heroAnim]}>
+          <LinearGradient
+            colors={['rgba(47,214,198,0.18)', 'rgba(47,214,198,0.06)']}
+            style={styles.heroIconWrap}
+          >
+            <Ionicons name="qr-code" size={26} color={tokens.colorBrand} />
+          </LinearGradient>
+          <Text style={styles.heroTitle}>Conductor</Text>
+          <Text style={styles.heroSub}>Genera tu QR verificado</Text>
+        </Animated.View>
 
-        <PlateInput value={placa} onChange={setPlaca} loading={false} />
+        {/* Input card */}
+        <Animated.View style={cardAnim}>
+          <GlassCard style={styles.card}>
+            <Text style={styles.cardLabel}>Datos del conductor</Text>
+            <PlateInput value={placa} onChange={setPlaca} loading={false} />
+            <TextInput
+              testID="input-dni"
+              style={[styles.dniInput, focused && styles.dniInputFocused]}
+              placeholder="DNI (8 dígitos)"
+              placeholderTextColor={tokens.colorTextMuted}
+              keyboardType="number-pad"
+              maxLength={8}
+              value={dni}
+              onChangeText={setDni}
+              onFocus={() => setFocused(true)}
+              onBlur={() => setFocused(false)}
+              selectionColor={tokens.colorBrand}
+            />
+            <Button onPress={generar} loading={cargando} disabled={!placa.trim() || !dni.trim()}>
+              Generar mi QR
+            </Button>
+          </GlassCard>
+        </Animated.View>
 
-        <TextInput
-          testID="input-dni"
-          style={[styles.dniInput, focused && styles.dniInputFocused]}
-          placeholder="DNI (8 dígitos)"
-          placeholderTextColor={tokens.colorTextMuted}
-          keyboardType="number-pad"
-          maxLength={8}
-          value={dni}
-          onChangeText={setDni}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
-          selectionColor={tokens.colorBrand}
-        />
-
-        <Button
-          onPress={generar}
-          loading={cargando}
-          disabled={!placa.trim() || !dni.trim()}
-        >
-          Generar mi QR
-        </Button>
-      </View>
-
-      {/* Error */}
-      {error !== '' && (
-        <View style={styles.errorCard}>
-          <Ionicons name="alert-circle" size={16} color={tokens.colorDanger} />
-          <Text style={styles.errorText}>{error}</Text>
-        </View>
-      )}
-
-      {/* Empty */}
-      {!qrUrl && !cargando && !error && (
-        <EmptyState
-          icon="qr-code-outline"
-          title="Genera tu código QR"
-          subtitle="Tus pasajeros lo escanearán para verificar tu vehículo al instante"
-        />
-      )}
-
-      {/* QR Display */}
-      {qrUrl !== '' && (
-        <View style={styles.qrCard}>
-          <View style={styles.qrHeader}>
-            <Ionicons name="checkmark-circle" size={20} color={tokens.colorSuccess} />
-            <Text style={styles.qrHeaderText}>QR generado</Text>
+        {/* Error */}
+        {error !== '' && (
+          <View style={styles.errorCard}>
+            <Ionicons name="alert-circle" size={16} color={tokens.colorDanger} />
+            <Text style={styles.errorText}>{error}</Text>
           </View>
+        )}
 
-          <View style={styles.qrImageWrap}>
-            <Image style={styles.qr} source={{ uri: qrUrl }} resizeMode="contain" />
-          </View>
+        {/* Empty */}
+        {!qrUrl && !cargando && !error && (
+          <EmptyState
+            icon="qr-code-outline"
+            title="Genera tu código QR"
+            subtitle="Tus pasajeros lo escanearán para verificar tu vehículo al instante"
+          />
+        )}
 
-          <View style={styles.qrMeta}>
-            <Text style={styles.qrPlaca}>{placa}</Text>
-            <Text style={styles.qrHint}>
-              Muestra este QR a tus pasajeros para que verifiquen tu vehículo en tiempo real.
-            </Text>
-          </View>
-        </View>
-      )}
-    </ScrollView>
+        {/* QR — scale bounce entrance */}
+        {qrUrl !== '' && (
+          <Animated.View style={{ transform: [{ scale: qrScale }], opacity: qrOpacity }}>
+            <GlassCard style={styles.qrCard} borderRadius={radius.xxl}>
+              {/* Header */}
+              <View style={styles.qrHeader}>
+                <View style={styles.qrHeaderIcon}>
+                  <Ionicons name="checkmark-circle" size={18} color={tokens.colorSuccess} />
+                </View>
+                <Text style={styles.qrHeaderText}>QR listo para mostrar</Text>
+              </View>
+
+              <View style={styles.qrSep} />
+
+              {/* QR image with gradient frame */}
+              <View style={styles.qrImageContainer}>
+                <LinearGradient
+                  colors={[tokens.colorBrandTint, 'rgba(47,214,198,0.03)']}
+                  style={styles.qrGradFrame}
+                >
+                  <View style={styles.qrImageWrap}>
+                    <Image style={styles.qr} source={{ uri: qrUrl }} resizeMode="contain" />
+                  </View>
+                </LinearGradient>
+              </View>
+
+              {/* Meta */}
+              <View style={styles.qrMeta}>
+                <Text style={styles.qrPlaca}>{placa}</Text>
+                <Text style={styles.qrHint}>
+                  Muestra este QR a tus pasajeros para que verifiquen tu vehículo en tiempo real.
+                </Text>
+              </View>
+            </GlassCard>
+          </Animated.View>
+        )}
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  scroll: { flex: 1, backgroundColor: tokens.colorBackground },
+  root: { flex: 1, backgroundColor: tokens.colorBackground },
+  ambientGrad: { position: 'absolute', top: 0, left: 0, right: 0, height: 320 },
   content: { paddingHorizontal: spacing.lg },
 
-  hero: {
-    alignItems: 'flex-start',
-    paddingTop: spacing.xl,
-    paddingBottom: spacing.xl,
+  hero: { alignItems: 'flex-start', paddingTop: spacing.xl, paddingBottom: spacing.xl },
+  heroIconWrap: {
+    width: 56, height: 56, borderRadius: radius.lg,
+    alignItems: 'center', justifyContent: 'center', marginBottom: 16,
+    borderWidth: 0.5, borderColor: tokens.colorBrandBorder,
+    shadowColor: tokens.colorBrand, shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4, shadowRadius: 12,
   },
-  heroIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: radius.lg,
-    backgroundColor: tokens.colorBrandTint,
-    borderWidth: 0.5,
-    borderColor: tokens.colorBrandBorder,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 14,
-  },
-  heroTitle: {
-    ...type.largeTitle,
-    color: tokens.colorText,
-    marginBottom: 4,
-  },
-  heroSub: {
-    ...type.title3,
-    color: tokens.colorTextSecondary,
-    fontWeight: '400',
-  },
+  heroTitle: { ...type.largeTitle, color: tokens.colorText, marginBottom: 4 },
+  heroSub:   { ...type.title3, color: tokens.colorTextSecondary, fontWeight: '400' },
 
-  card: {
-    backgroundColor: tokens.colorSurface,
-    borderRadius: radius.xl,
-    borderWidth: 0.5,
-    borderColor: tokens.colorLine,
-    padding: spacing.lg,
-    gap: spacing.md,
-    marginBottom: spacing.lg,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 16,
-  },
+  card: { padding: spacing.lg, gap: spacing.md, marginBottom: spacing.lg },
   cardLabel: {
-    ...type.footnote,
-    color: tokens.colorTextMuted,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
+    ...type.footnote, color: tokens.colorTextMuted,
+    fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.8,
   },
-
   dniInput: {
-    backgroundColor: tokens.colorBG3,
-    borderWidth: 1,
-    borderColor: tokens.colorLine,
+    backgroundColor: 'rgba(44,44,46,0.5)',
+    borderWidth: 1, borderColor: tokens.colorLine,
     borderRadius: radius.lg,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    fontSize: 22,
-    color: tokens.colorText,
-    letterSpacing: 4,
-    fontFamily: fontMono,
-    fontWeight: '600',
+    paddingHorizontal: 16, paddingVertical: 16,
+    fontSize: 22, color: tokens.colorText,
+    letterSpacing: 4, fontFamily: fontMono, fontWeight: '600',
     minHeight: 62,
   },
   dniInputFocused: {
     borderColor: tokens.colorBrand,
     shadowColor: tokens.colorBrand,
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
+    shadowOpacity: 0.3, shadowRadius: 8,
   },
 
   errorCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+    flexDirection: 'row', alignItems: 'center', gap: 8,
     backgroundColor: tokens.colorDangerTint,
-    borderWidth: 0.5,
-    borderColor: 'rgba(255,69,58,0.3)',
-    borderRadius: radius.lg,
-    padding: 14,
-    marginBottom: spacing.lg,
+    borderWidth: 0.5, borderColor: 'rgba(255,69,58,0.3)',
+    borderRadius: radius.lg, padding: 14, marginBottom: spacing.lg,
   },
   errorText: { ...type.subheadline, color: tokens.colorDanger, flex: 1 },
 
-  qrCard: {
-    backgroundColor: tokens.colorSurface,
-    borderRadius: radius.xl,
-    borderWidth: 0.5,
-    borderColor: tokens.colorLine,
+  qrCard: { marginBottom: spacing.lg },
+  qrHeader: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    paddingHorizontal: 16, paddingVertical: 14,
+  },
+  qrHeaderIcon: {
+    width: 30, height: 30, borderRadius: 8,
+    backgroundColor: 'rgba(48,209,88,0.14)',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  qrHeaderText: { ...type.headline, color: tokens.colorSuccess },
+  qrSep: { height: 0.5, backgroundColor: 'rgba(255,255,255,0.1)', marginHorizontal: 0 },
+  qrImageContainer: { padding: 24, alignItems: 'center' },
+  qrGradFrame: {
+    borderRadius: radius.xl, padding: 16,
+    borderWidth: 0.5, borderColor: tokens.colorBrandBorder,
+  },
+  qrImageWrap: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: radius.lg,
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 16,
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
   },
-  qrHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    padding: 16,
-    borderBottomWidth: 0.5,
-    borderBottomColor: tokens.colorLine,
-  },
-  qrHeaderText: {
-    ...type.headline,
-    color: tokens.colorSuccess,
-  },
-  qrImageWrap: {
-    alignItems: 'center',
-    padding: spacing.xl,
-    backgroundColor: tokens.colorBG3,
-  },
-  qr: {
-    width: 220,
-    height: 220,
-    borderRadius: radius.lg,
-    backgroundColor: '#fff',
-  },
-  qrMeta: {
-    padding: 16,
-    gap: 6,
-  },
+  qr: { width: 200, height: 200 },
+  qrMeta: { padding: 16, paddingTop: 4, gap: 6 },
   qrPlaca: {
-    fontSize: 20,
-    fontFamily: fontMono,
-    color: tokens.colorText,
-    fontWeight: '700',
-    letterSpacing: 4,
+    fontSize: 20, fontFamily: fontMono, color: tokens.colorText,
+    fontWeight: '700', letterSpacing: 4,
   },
-  qrHint: {
-    ...type.footnote,
-    color: tokens.colorTextSecondary,
-    lineHeight: 19,
-  },
+  qrHint: { ...type.footnote, color: tokens.colorTextSecondary, lineHeight: 19 },
 });

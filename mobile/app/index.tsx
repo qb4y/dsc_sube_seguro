@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
-import { ScrollView, View, Text, StyleSheet } from 'react-native';
+import { Animated, ScrollView, View, Text, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { tokens, spacing, radius, type } from '../src/lib/tokens';
 import { toVerdict } from '../src/lib/colores';
+import { useFadeSlideIn, useShake } from '../src/lib/animations';
+import { GlassCard } from '../src/components/GlassCard';
 import { PlateInput } from '../src/components/PlateInput';
 import { Button } from '../src/components/Button';
 import { VerdictCard } from '../src/components/VerdictCard';
@@ -23,6 +26,10 @@ export default function Pasajero() {
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState('');
   const [vehicleMatch, setVehicleMatch] = useState<boolean | null>(null);
+
+  const heroAnim   = useFadeSlideIn(0);
+  const cardAnim   = useFadeSlideIn(80);
+  const { translateX, shake } = useShake();
 
   const verificar = async () => {
     if (!placa.trim()) return;
@@ -42,6 +49,7 @@ export default function Pasajero() {
       );
     } catch {
       setError('No pudimos verificar. Revisa tu conexión.');
+      shake();
     } finally {
       setCargando(false);
     }
@@ -66,82 +74,103 @@ export default function Pasajero() {
   const hora = new Date().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
 
   return (
-    <ScrollView
-      style={[styles.scroll, { paddingTop: insets.top }]}
-      contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 110 }]}
-      showsVerticalScrollIndicator={false}
-    >
-      {/* Hero */}
-      <View style={styles.hero}>
-        <View style={styles.heroIcon}>
-          <Ionicons name="shield-checkmark" size={28} color={tokens.colorBrand} />
-        </View>
-        <Text style={styles.heroTitle}>SubeSeguro</Text>
-        <Text style={styles.heroSub}>Verifica antes de subir</Text>
-      </View>
+    <View style={styles.root}>
+      {/* Ambient gradient background */}
+      <LinearGradient
+        colors={['rgba(47,214,198,0.07)', 'rgba(47,214,198,0.02)', 'transparent']}
+        locations={[0, 0.35, 1]}
+        style={styles.ambientGrad}
+      />
 
-      {/* Input card */}
-      <View style={styles.card}>
-        <Text style={styles.cardLabel}>Placa del vehículo</Text>
-        <PlateInput value={placa} onChange={setPlaca} onSubmit={verificar} loading={cargando} />
-        <View style={styles.buttonRow}>
-          <View style={{ flex: 1 }}>
-            <Button onPress={verificar} loading={cargando} disabled={!placa.trim()}>
-              Verificar
-            </Button>
+      <ScrollView
+        style={{ flex: 1, paddingTop: insets.top }}
+        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 112 }]}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Hero */}
+        <Animated.View style={[styles.hero, heroAnim]}>
+          <LinearGradient
+            colors={['rgba(47,214,198,0.18)', 'rgba(47,214,198,0.06)']}
+            style={styles.heroIconWrap}
+          >
+            <Ionicons name="shield-checkmark" size={28} color={tokens.colorBrand} />
+          </LinearGradient>
+          <Text style={styles.heroTitle}>SubeSeguro</Text>
+          <Text style={styles.heroSub}>Verifica antes de subir</Text>
+        </Animated.View>
+
+        {/* Input card — liquid glass */}
+        <Animated.View style={cardAnim}>
+          <GlassCard style={styles.card}>
+            <Text style={styles.cardLabel}>Placa del vehículo</Text>
+            <PlateInput value={placa} onChange={setPlaca} onSubmit={verificar} loading={cargando} />
+            <View style={styles.buttonRow}>
+              <View style={{ flex: 1 }}>
+                <Button onPress={verificar} loading={cargando} disabled={!placa.trim()}>
+                  Verificar
+                </Button>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Button variant="ghost" onPress={tomarFoto} disabled={cargando}>
+                  Usar cámara
+                </Button>
+              </View>
+            </View>
+          </GlassCard>
+        </Animated.View>
+
+        {/* Error */}
+        {error !== '' && (
+          <Animated.View style={[{ transform: [{ translateX }] }]}>
+            <View style={styles.errorCard}>
+              <Ionicons name="alert-circle" size={16} color={tokens.colorDanger} />
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          </Animated.View>
+        )}
+
+        {/* Empty state */}
+        {!veredicto && !cargando && !error && (
+          <EmptyState
+            icon="shield-checkmark-outline"
+            title="Ingresa una placa para comenzar"
+            subtitle="Verificamos SOAT, revisión técnica y datos del vehículo en tiempo real"
+          />
+        )}
+
+        {/* Results */}
+        {veredicto && (
+          <View style={styles.results}>
+            <VerdictCard verdict={toVerdict(veredicto.color)} placa={veredicto.placa} />
+
+            {vehiculoCheck && (
+              <VehicleCard
+                vehicle={{
+                  marca: descripcion.split(' ')[2] ?? '',
+                  modelo: descripcion.split(' ')[3] ?? '',
+                  color: descripcion.split(' ')[4] ?? '',
+                }}
+                match={vehicleMatch}
+                onMatch={setVehicleMatch}
+              />
+            )}
+
+            <CheckList checks={veredicto.checks} />
+            <ShareButton placa={veredicto.placa} descripcion={descripcion} hora={hora} />
           </View>
-          <View style={{ flex: 1 }}>
-            <Button variant="ghost" onPress={tomarFoto} disabled={cargando}>
-              Usar cámara
-            </Button>
-          </View>
-        </View>
-      </View>
-
-      {/* Error */}
-      {error !== '' && (
-        <View style={styles.errorCard}>
-          <Ionicons name="alert-circle" size={16} color={tokens.colorDanger} />
-          <Text style={styles.errorText}>{error}</Text>
-        </View>
-      )}
-
-      {/* Empty */}
-      {!veredicto && !cargando && !error && (
-        <EmptyState
-          icon="shield-checkmark-outline"
-          title="Ingresa una placa para comenzar"
-          subtitle="Verificamos SOAT, revisión técnica y datos del vehículo en tiempo real"
-        />
-      )}
-
-      {/* Results */}
-      {veredicto && (
-        <View style={styles.results}>
-          <VerdictCard verdict={toVerdict(veredicto.color)} placa={veredicto.placa} />
-
-          {vehiculoCheck && (
-            <VehicleCard
-              vehicle={{
-                marca: descripcion.split(' ')[2] ?? '',
-                modelo: descripcion.split(' ')[3] ?? '',
-                color: descripcion.split(' ')[4] ?? '',
-              }}
-              match={vehicleMatch}
-              onMatch={setVehicleMatch}
-            />
-          )}
-
-          <CheckList checks={veredicto.checks} />
-          <ShareButton placa={veredicto.placa} descripcion={descripcion} hora={hora} />
-        </View>
-      )}
-    </ScrollView>
+        )}
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  scroll: { flex: 1, backgroundColor: tokens.colorBackground },
+  root: { flex: 1, backgroundColor: tokens.colorBackground },
+  ambientGrad: {
+    position: 'absolute',
+    top: 0, left: 0, right: 0,
+    height: 320,
+  },
   content: { paddingHorizontal: spacing.lg },
 
   hero: {
@@ -149,41 +178,24 @@ const styles = StyleSheet.create({
     paddingTop: spacing.xl,
     paddingBottom: spacing.xl,
   },
-  heroIcon: {
-    width: 52,
-    height: 52,
+  heroIconWrap: {
+    width: 56,
+    height: 56,
     borderRadius: radius.lg,
-    backgroundColor: tokens.colorBrandTint,
-    borderWidth: 0.5,
-    borderColor: tokens.colorBrandBorder,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 14,
-  },
-  heroTitle: {
-    ...type.largeTitle,
-    color: tokens.colorText,
-    marginBottom: 4,
-  },
-  heroSub: {
-    ...type.title3,
-    color: tokens.colorTextSecondary,
-    fontWeight: '400',
-  },
-
-  card: {
-    backgroundColor: tokens.colorSurface,
-    borderRadius: radius.xl,
+    marginBottom: 16,
     borderWidth: 0.5,
-    borderColor: tokens.colorLine,
-    padding: spacing.lg,
-    gap: spacing.md,
-    marginBottom: spacing.lg,
-    shadowColor: '#000',
+    borderColor: tokens.colorBrandBorder,
+    shadowColor: tokens.colorBrand,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 16,
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
   },
+  heroTitle: { ...type.largeTitle, color: tokens.colorText, marginBottom: 4 },
+  heroSub:   { ...type.title3, color: tokens.colorTextSecondary, fontWeight: '400' },
+
+  card: { padding: spacing.lg, gap: spacing.md, marginBottom: spacing.lg },
   cardLabel: {
     ...type.footnote,
     color: tokens.colorTextMuted,
