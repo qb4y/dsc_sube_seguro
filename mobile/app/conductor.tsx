@@ -3,7 +3,6 @@ import { Alert, Animated, ScrollView, TouchableOpacity, View, Text, TextInput, I
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import ViewShot, { type ViewShotRef } from 'react-native-view-shot';
-import * as MediaLibrary from 'expo-media-library';
 import * as Sharing from 'expo-sharing';
 import { tokens, spacing, radius, type, fontMono } from '../src/lib/tokens';
 import { useFadeSlideIn, useScaleBounce, useBreathingGlow, useFloat } from '../src/lib/animations';
@@ -72,17 +71,11 @@ export default function Conductor() {
     try {
       const uri = await exportRef.current!.capture!();
       const canShare = await Sharing.isAvailableAsync();
-      if (canShare) {
-        await Sharing.shareAsync(uri, { mimeType: 'image/png', dialogTitle: 'Compartir QR conductor' });
-      } else {
-        const { status } = await MediaLibrary.requestPermissionsAsync();
-        if (status !== 'granted') {
-          Alert.alert('Permiso requerido', 'Necesitamos acceso a tu galería para guardar la imagen.');
-          return;
-        }
-        await MediaLibrary.saveToLibraryAsync(uri);
-        Alert.alert('¡Guardado!', 'La imagen se guardó en tu galería.');
+      if (!canShare) {
+        Alert.alert('No disponible', 'Tu dispositivo no soporta compartir archivos.');
+        return;
       }
+      await Sharing.shareAsync(uri, { mimeType: 'image/png', dialogTitle: 'Compartir QR conductor' });
     } catch {
       Alert.alert('Error', 'No se pudo exportar el QR.');
     } finally {
