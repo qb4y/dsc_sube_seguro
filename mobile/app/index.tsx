@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { ScrollView, View, Text, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import * as Haptics from 'expo-haptics';
-import { tokens, spacing, radius } from '../src/lib/tokens';
+import { Ionicons } from '@expo/vector-icons';
+import { tokens, spacing, radius, type } from '../src/lib/tokens';
 import { toVerdict } from '../src/lib/colores';
 import { PlateInput } from '../src/components/PlateInput';
 import { Button } from '../src/components/Button';
@@ -15,6 +17,7 @@ import { verificarPasajero, type Veredicto } from '../src/api/verificar';
 import { ocrPlaca } from '../src/api/ocr';
 
 export default function Pasajero() {
+  const insets = useSafeAreaInsets();
   const [placa, setPlaca] = useState('');
   const [veredicto, setVeredicto] = useState<Veredicto | null>(null);
   const [cargando, setCargando] = useState(false);
@@ -63,13 +66,23 @@ export default function Pasajero() {
   const hora = new Date().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
 
   return (
-    <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Revisa antes de subir</Text>
-      <Text style={styles.subtitle}>
-        Ingresa la placa del vehículo para verificar su estado
-      </Text>
+    <ScrollView
+      style={[styles.scroll, { paddingTop: insets.top }]}
+      contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 110 }]}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* Hero */}
+      <View style={styles.hero}>
+        <View style={styles.heroIcon}>
+          <Ionicons name="shield-checkmark" size={28} color={tokens.colorBrand} />
+        </View>
+        <Text style={styles.heroTitle}>SubeSeguro</Text>
+        <Text style={styles.heroSub}>Verifica antes de subir</Text>
+      </View>
 
-      <View style={styles.inputSection}>
+      {/* Input card */}
+      <View style={styles.card}>
+        <Text style={styles.cardLabel}>Placa del vehículo</Text>
         <PlateInput value={placa} onChange={setPlaca} onSubmit={verificar} loading={cargando} />
         <View style={styles.buttonRow}>
           <View style={{ flex: 1 }}>
@@ -79,26 +92,30 @@ export default function Pasajero() {
           </View>
           <View style={{ flex: 1 }}>
             <Button variant="ghost" onPress={tomarFoto} disabled={cargando}>
-              📷 Foto
+              Usar cámara
             </Button>
           </View>
         </View>
       </View>
 
+      {/* Error */}
       {error !== '' && (
-        <View style={styles.errorBox}>
+        <View style={styles.errorCard}>
+          <Ionicons name="alert-circle" size={16} color={tokens.colorDanger} />
           <Text style={styles.errorText}>{error}</Text>
         </View>
       )}
 
+      {/* Empty */}
       {!veredicto && !cargando && !error && (
         <EmptyState
           icon="shield-checkmark-outline"
           title="Ingresa una placa para comenzar"
-          subtitle="Verificaremos SOAT, revision tecnica y datos del vehiculo en tiempo real"
+          subtitle="Verificamos SOAT, revisión técnica y datos del vehículo en tiempo real"
         />
       )}
 
+      {/* Results */}
       {veredicto && (
         <View style={styles.results}>
           <VerdictCard verdict={toVerdict(veredicto.color)} placa={veredicto.placa} />
@@ -125,12 +142,69 @@ export default function Pasajero() {
 
 const styles = StyleSheet.create({
   scroll: { flex: 1, backgroundColor: tokens.colorBackground },
-  content: { padding: spacing.lg, paddingBottom: 60 },
-  title: { fontSize: 24, fontWeight: '800', color: tokens.colorText, marginBottom: 4 },
-  subtitle: { fontSize: 14, color: tokens.colorTextMuted, marginBottom: spacing.lg },
-  inputSection: { gap: 12 },
+  content: { paddingHorizontal: spacing.lg },
+
+  hero: {
+    alignItems: 'flex-start',
+    paddingTop: spacing.xl,
+    paddingBottom: spacing.xl,
+  },
+  heroIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: radius.lg,
+    backgroundColor: tokens.colorBrandTint,
+    borderWidth: 0.5,
+    borderColor: tokens.colorBrandBorder,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 14,
+  },
+  heroTitle: {
+    ...type.largeTitle,
+    color: tokens.colorText,
+    marginBottom: 4,
+  },
+  heroSub: {
+    ...type.title3,
+    color: tokens.colorTextSecondary,
+    fontWeight: '400',
+  },
+
+  card: {
+    backgroundColor: tokens.colorSurface,
+    borderRadius: radius.xl,
+    borderWidth: 0.5,
+    borderColor: tokens.colorLine,
+    padding: spacing.lg,
+    gap: spacing.md,
+    marginBottom: spacing.lg,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+  },
+  cardLabel: {
+    ...type.footnote,
+    color: tokens.colorTextMuted,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
   buttonRow: { flexDirection: 'row', gap: 10 },
-  errorBox: { backgroundColor: tokens.colorDanger + '15', padding: 12, borderRadius: radius.sm, marginTop: spacing.md },
-  errorText: { color: tokens.colorDanger, fontSize: 14 },
-  results: { marginTop: spacing.lg },
+
+  errorCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: tokens.colorDangerTint,
+    borderWidth: 0.5,
+    borderColor: 'rgba(255,69,58,0.3)',
+    borderRadius: radius.lg,
+    padding: 14,
+    marginBottom: spacing.lg,
+  },
+  errorText: { ...type.subheadline, color: tokens.colorDanger, flex: 1 },
+
+  results: { gap: 0 },
 });

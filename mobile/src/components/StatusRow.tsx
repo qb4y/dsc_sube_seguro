@@ -1,10 +1,7 @@
-/**
- * React Native adaptation of design-system StatusRow.
- * Matches DS props: verdict, title, big, sub, note
- */
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { tokens, verdictColors, verdictLabels, spacing, radius, type VerdictColor } from '../lib/tokens';
+import { Ionicons } from '@expo/vector-icons';
+import { tokens, verdictColors, verdictTints, verdictLabels, radius, type, type VerdictColor } from '../lib/tokens';
 
 export interface StatusRowProps {
   verdict: VerdictColor;
@@ -14,24 +11,31 @@ export interface StatusRowProps {
   note?: string;
 }
 
-const ICONS: Record<VerdictColor, string> = {
-  green: '🛡️',
-  amber: '⏳',
-  red: '🚫',
+const ICONS: Record<VerdictColor, keyof typeof Ionicons.glyphMap> = {
+  green: 'checkmark-circle',
+  amber: 'time',
+  red:   'close-circle',
 };
 
 export function StatusRow({ verdict, title, big, sub, note }: StatusRowProps) {
   const color = verdictColors[verdict];
+  const tint = verdictTints[verdict];
+
   return (
     <View style={styles.row}>
-      <View style={[styles.iconBox, { backgroundColor: color + '22' }]}>
-        <Text style={styles.icon}>{ICONS[verdict]}</Text>
+      <View style={[styles.iconBox, { backgroundColor: tint }]}>
+        <Ionicons name={ICONS[verdict]} size={20} color={color} />
       </View>
+
       <View style={styles.body}>
         <Text style={styles.title}>{title}</Text>
         <Text style={[styles.big, { color }]}>{big}</Text>
         {sub && <Text style={styles.sub}>{sub}</Text>}
         {note && <Text style={styles.note}>{note}</Text>}
+      </View>
+
+      <View style={[styles.badge, { backgroundColor: tint }]}>
+        <Text style={[styles.badgeText, { color }]}>{verdictLabels[verdict]}</Text>
       </View>
     </View>
   );
@@ -40,25 +44,53 @@ export function StatusRow({ verdict, title, big, sub, note }: StatusRowProps) {
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: tokens.colorSurface,
-    padding: spacing.md,
-    borderRadius: radius.md,
-    marginBottom: spacing.sm,
-    borderWidth: 1,
-    borderColor: tokens.colorLine,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderBottomWidth: 0.5,
+    borderBottomColor: tokens.colorLine,
     gap: 12,
   },
   iconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 11,
+    width: 38,
+    height: 38,
+    borderRadius: radius.sm,
     alignItems: 'center',
     justifyContent: 'center',
+    flexShrink: 0,
   },
-  icon: { fontSize: 18 },
-  body: { flex: 1 },
-  title: { fontSize: 11, fontWeight: '600', color: tokens.colorTextMuted, textTransform: 'uppercase', letterSpacing: 0.5 },
-  big: { fontSize: 15, fontWeight: '800', marginTop: 2 },
-  sub: { fontSize: 13, color: tokens.colorText, marginTop: 2 },
-  note: { fontSize: 11, color: tokens.colorTextMuted, marginTop: 4 },
+  body: { flex: 1, minWidth: 0 },
+  title: {
+    ...type.caption1,
+    color: tokens.colorTextMuted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  big: {
+    ...type.subheadline,
+    fontWeight: '600',
+  },
+  sub: {
+    ...type.caption1,
+    color: tokens.colorTextSecondary,
+    marginTop: 2,
+  },
+  note: {
+    ...type.caption2,
+    color: tokens.colorTextMuted,
+    marginTop: 3,
+  },
+  badge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: radius.pill,
+    flexShrink: 0,
+  },
+  badgeText: {
+    ...type.caption1,
+    fontWeight: '700',
+  },
 });

@@ -1,27 +1,27 @@
-/**
- * React Native adaptation of design-system Badge.
- * Matches DS props: verdict, label
- */
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { verdictColors, verdictLabels, type VerdictColor } from '../lib/tokens';
+import { Ionicons } from '@expo/vector-icons';
+import { verdictColors, verdictTints, verdictBorders, verdictLabels, type, type VerdictColor } from '../lib/tokens';
 
 export interface BadgeProps {
   verdict: VerdictColor;
   label?: string;
 }
 
-const ICONS: Record<VerdictColor, string> = {
-  green: '🛡️',
-  amber: '⚠️',
-  red: '🚫',
+const ICONS: Record<VerdictColor, keyof typeof Ionicons.glyphMap> = {
+  green: 'checkmark-circle',
+  amber: 'warning',
+  red:   'close-circle',
 };
 
 export function Badge({ verdict, label }: BadgeProps) {
   const color = verdictColors[verdict];
+  const tint = verdictTints[verdict];
+  const border = verdictBorders[verdict];
+
   return (
-    <View style={[styles.pill, { backgroundColor: color + '22' }]}>
-      <Text style={styles.icon}>{ICONS[verdict]}</Text>
+    <View style={[styles.pill, { backgroundColor: tint, borderColor: border }]}>
+      <Ionicons name={ICONS[verdict]} size={13} color={color} />
       <Text style={[styles.label, { color }]}>{label ?? verdictLabels[verdict]}</Text>
     </View>
   );
@@ -32,11 +32,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 999,
+    borderWidth: 0.5,
+    gap: 5,
   },
-  icon: { fontSize: 14 },
-  label: { fontSize: 13, fontWeight: '600' },
+  label: {
+    ...type.caption1,
+    fontWeight: '700',
+  },
 });

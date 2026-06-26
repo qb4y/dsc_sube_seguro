@@ -54,13 +54,14 @@ export function MatchConfirm({ value, onChange }: MatchConfirmProps) {
 const styles = StyleSheet.create({
   btn: {
     flex: 1,
-    paddingVertical: 10,
-    borderRadius: radius.sm,
-    borderWidth: 1,
+    paddingVertical: 14,
+    borderRadius: radius.lg,
+    borderWidth: 0.5,
     borderColor: tokens.colorLine,
-    backgroundColor: tokens.colorSurfaceElevated,
+    backgroundColor: tokens.colorBG3,
     alignItems: 'center',
+    minHeight: 48,
   },
-  label: { fontSize: 14, fontWeight: '600', color: tokens.colorText },
-  row: { flexDirection: 'row', gap: 10 },
+  label: { fontSize: 15, fontWeight: '600', color: tokens.colorTextSecondary },
+  row: { flexDirection: 'row', gap: 10, paddingHorizontal: 16, paddingBottom: 14 },
 });

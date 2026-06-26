@@ -1,11 +1,6 @@
-/**
- * React Native adaptation of design-system PlateInput.
- * Matches DS props: value, onChange, onSubmit, loading, placeholder
- */
-import React from 'react';
-import { View, TextInput, StyleSheet, ActivityIndicator, Text } from 'react-native';
-import { tokens } from '../lib/tokens';
-import { spacing, radius, fontMono, colorPlateBlueSidebar } from '../lib/tokens';
+import React, { useRef, useState } from 'react';
+import { View, TextInput, StyleSheet, ActivityIndicator, Text, Pressable } from 'react-native';
+import { tokens, radius, fontMono, colorPlateBlueSidebar, type } from '../lib/tokens';
 
 export interface PlateInputProps {
   value: string;
@@ -15,56 +10,99 @@ export interface PlateInputProps {
   placeholder?: string;
 }
 
-export function PlateInput({ value, onChange, onSubmit, loading = false, placeholder = 'ABC123' }: PlateInputProps) {
+export function PlateInput({
+  value, onChange, onSubmit, loading = false, placeholder = 'ABC-123',
+}: PlateInputProps) {
+  const [focused, setFocused] = useState(false);
+  const inputRef = useRef<TextInput>(null);
+
   return (
-    <View style={styles.container}>
-      <View style={styles.sidebar}>
-        <Text style={styles.sidebarText}>PE</Text>
+    <Pressable onPress={() => inputRef.current?.focus()} style={styles.wrapper}>
+      <View
+        style={[
+          styles.container,
+          focused && styles.containerFocused,
+        ]}
+      >
+        <View style={styles.sidebar}>
+          <Text style={styles.sidebarFlag}>🇵🇪</Text>
+          <Text style={styles.sidebarText}>PE</Text>
+        </View>
+
+        <TextInput
+          ref={inputRef}
+          testID="plate-input"
+          style={styles.input}
+          value={value}
+          onChangeText={(t) =>
+            onChange(t.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8))
+          }
+          onSubmitEditing={onSubmit}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          placeholder={placeholder}
+          placeholderTextColor={tokens.colorTextMuted}
+          autoCapitalize="characters"
+          maxLength={8}
+          editable={!loading}
+          returnKeyType="search"
+          selectionColor={tokens.colorBrand}
+        />
+
+        {loading && (
+          <ActivityIndicator color={tokens.colorBrand} style={styles.loader} size="small" />
+        )}
       </View>
-      <TextInput
-        testID="plate-input"
-        style={styles.input}
-        value={value}
-        onChangeText={(t) => onChange(t.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8))}
-        onSubmitEditing={onSubmit}
-        placeholder={placeholder}
-        placeholderTextColor={tokens.colorTextMuted}
-        autoCapitalize="characters"
-        maxLength={8}
-        editable={!loading}
-        returnKeyType="search"
-      />
-      {loading && <ActivityIndicator color={tokens.colorBrand} style={styles.loader} />}
-    </View>
+
+      <Text style={styles.hint}>Ingresa hasta 8 caracteres</Text>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
+  wrapper: { gap: 6 },
   container: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: tokens.colorSurface,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: tokens.colorLine,
     overflow: 'hidden',
+    minHeight: 62,
+  },
+  containerFocused: {
+    borderColor: tokens.colorBrand,
+    shadowColor: tokens.colorBrand,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
   },
   sidebar: {
     backgroundColor: colorPlateBlueSidebar,
-    paddingHorizontal: 12,
-    paddingVertical: 16,
-    justifyContent: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
     alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'stretch',
+    gap: 2,
   },
-  sidebarText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' },
+  sidebarFlag: { fontSize: 16 },
+  sidebarText: { color: '#FFFFFF', fontSize: 10, fontWeight: '800', letterSpacing: 1 },
   input: {
     flex: 1,
     color: tokens.colorText,
-    fontSize: 26,
+    fontSize: 28,
     fontFamily: fontMono,
-    letterSpacing: 4,
-    paddingHorizontal: spacing.md,
+    letterSpacing: 5,
+    paddingHorizontal: 16,
     paddingVertical: 14,
+    fontWeight: '700',
   },
-  loader: { marginRight: spacing.md },
+  loader: { marginRight: 16 },
+  hint: {
+    ...type.caption2,
+    color: tokens.colorTextMuted,
+    marginLeft: 4,
+  },
 });

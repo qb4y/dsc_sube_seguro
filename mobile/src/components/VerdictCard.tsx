@@ -1,31 +1,43 @@
-/**
- * React Native adaptation of design-system VerdictCard.
- * Matches DS props: verdict, placa
- */
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { tokens, verdictColors, verdictLabels, spacing, radius, fontMono, type VerdictColor } from '../lib/tokens';
+import { Ionicons } from '@expo/vector-icons';
+import {
+  tokens, verdictColors, verdictTints, verdictBorders, verdictLabels,
+  spacing, radius, type, fontMono, type VerdictColor,
+} from '../lib/tokens';
 
 export interface VerdictCardProps {
   verdict: VerdictColor;
   placa: string;
 }
 
-const ICONS: Record<VerdictColor, string> = {
-  green: '🛡️',
-  amber: '⚠️',
-  red: '🚫',
+const ICONS: Record<VerdictColor, keyof typeof Ionicons.glyphMap> = {
+  green: 'shield-checkmark',
+  amber: 'warning',
+  red:   'ban',
+};
+
+const SUBTITLES: Record<VerdictColor, string> = {
+  green: 'Documentación al día',
+  amber: 'Revisar observaciones',
+  red:   'No recomendado',
 };
 
 export function VerdictCard({ verdict, placa }: VerdictCardProps) {
   const color = verdictColors[verdict];
+  const tint = verdictTints[verdict];
+  const border = verdictBorders[verdict];
+
   return (
-    <View testID="verdict-card" style={[styles.card, { backgroundColor: color + '14' }]}>
-      <View style={[styles.iconBox, { backgroundColor: color + '22' }]}>
-        <Text style={styles.icon}>{ICONS[verdict]}</Text>
+    <View testID="verdict-card" style={[styles.card, { backgroundColor: tint, borderColor: border }]}>
+      <View style={[styles.iconRing, { backgroundColor: tint, borderColor: border }]}>
+        <Ionicons name={ICONS[verdict]} size={32} color={color} />
       </View>
       <Text style={[styles.label, { color }]}>{verdictLabels[verdict]}</Text>
-      <Text style={styles.placa}>{placa}</Text>
+      <Text style={styles.subtitle}>{SUBTITLES[verdict]}</Text>
+      <View style={[styles.placaPill, { borderColor: border }]}>
+        <Text style={[styles.placa, { color: tokens.colorTextSecondary }]}>{placa}</Text>
+      </View>
     </View>
   );
 }
@@ -33,24 +45,44 @@ export function VerdictCard({ verdict, placa }: VerdictCardProps) {
 const styles = StyleSheet.create({
   card: {
     alignItems: 'center',
-    padding: spacing.lg,
-    borderRadius: radius.lg,
-    marginBottom: spacing.md,
+    paddingVertical: spacing.xl,
+    paddingHorizontal: spacing.lg,
+    borderRadius: radius.xxl,
+    borderWidth: 1,
+    marginBottom: spacing.lg,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
   },
-  iconBox: {
-    width: 52,
-    height: 52,
-    borderRadius: 11,
+  iconRing: {
+    width: 72,
+    height: 72,
+    borderRadius: radius.xl,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: spacing.md,
   },
-  icon: { fontSize: 28 },
-  label: { fontSize: 22, fontWeight: '800', marginTop: 8 },
+  label: {
+    ...type.title1,
+    marginBottom: 4,
+  },
+  subtitle: {
+    ...type.subheadline,
+    color: tokens.colorTextSecondary,
+    marginBottom: spacing.md,
+  },
+  placaPill: {
+    borderWidth: 1,
+    borderRadius: radius.pill,
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+  },
   placa: {
-    fontSize: 18,
+    fontSize: 17,
     fontFamily: fontMono,
-    color: tokens.colorTextMuted,
-    letterSpacing: 3,
-    marginTop: 4,
+    letterSpacing: 4,
+    fontWeight: '600',
   },
 });
