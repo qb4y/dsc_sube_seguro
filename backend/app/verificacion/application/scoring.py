@@ -66,15 +66,18 @@ def score_licencia(info: LicenciaInfo | None, fuente: str) -> Check:
             fuente=fuente, consultado_en=ts,
         )
     if not info.vigente:
+        nombre = f" · {info.nombre_completo}" if info.nombre_completo else ""
         return Check(
             clave="licencia", etiqueta="Licencia de conducir", color=Color.rojo,
-            detalle="Licencia vencida o no habilitada.",
+            detalle=f"Licencia vencida o no habilitada{nombre}.",
             fuente=fuente, consultado_en=ts,
         )
     cat = f" · Categoría {info.categoria}" if info.categoria else ""
+    nombre = f" · {info.nombre_completo}" if info.nombre_completo else ""
+    restricciones = f" · {info.restricciones}" if info.restricciones and info.restricciones != "SIN RESTRICCIONES" else ""
     return Check(
         clave="licencia", etiqueta="Licencia de conducir", color=Color.verde,
-        detalle=f"Licencia vigente{cat}.",
+        detalle=f"Licencia vigente{cat}{nombre}{restricciones}.",
         fuente=fuente, consultado_en=ts,
     )
 

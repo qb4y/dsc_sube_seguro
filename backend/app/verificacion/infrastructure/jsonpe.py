@@ -88,13 +88,22 @@ class JsonPeRevisionTecnicaAdapter(IRevisionTecnicaPort):
 class JsonPeLicenciaAdapter(ILicenciaPort):
     async def consultar(self, dni: str) -> LicenciaInfo | None:
         r = await _client().post("/api/licencia", json={"dni": dni})
+        if r.status_code == 404:
+            return None
         r.raise_for_status()
         resp = r.json()
         if not resp.get("success"):
             return None
-        licencia = resp["data"].get("licencia", {})
+        data = resp.get("data", {})
+        raw = data.get("licencia")
+        if not raw:
+            return None
+        # API returns dict for single license or list for multiple
+        lic = raw[0] if isinstance(raw, list) else raw
         return LicenciaInfo(
-            categoria=licencia.get("categoria"),
-            vigente=licencia.get("estado") == "VIGENTE",
-            fecha_vencimiento=_parse_date(licencia.get("fecha_vencimiento")),
+            categoria=lic.get("categoria"),
+            vigente=lic.get("estado") == "VIGENTE",
+            fecha_vencimiento=_parse_date(lic.get("fecha_vencimiento")),
+            nombre_completo=data.get("nombre_completo"),
+            restricciones=lic.get("restricciones"),
         )

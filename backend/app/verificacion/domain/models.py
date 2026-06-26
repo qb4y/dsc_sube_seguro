@@ -27,3 +27,5 @@ class LicenciaInfo(BaseModel):
     categoria: str | None = None
     vigente: bool
     fecha_vencimiento: datetime | None = None
+    nombre_completo: str | None = None
+    restricciones: str | None = None
