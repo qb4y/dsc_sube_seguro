@@ -105,8 +105,9 @@ export default function Pasajero() {
     }
   };
 
-  const vehiculoCheck = veredicto?.checks.find((c) => c.clave === 'vehiculo');
-  const descripcion = vehiculoCheck?.detalle ?? '';
+  const vehiculoCheck = veredicto?.checks.find((c) => c.clave === 'vehiculo' && c.color === 'verde');
+  const [vMarca = '', vModelo = '', vColor = ''] = vehiculoCheck?.detalle.split('|') ?? [];
+  const descripcion = vehiculoCheck ? `${vMarca} ${vModelo}, color ${vColor}` : '';
   const hora = new Date().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
 
   return (
@@ -212,11 +213,7 @@ export default function Pasajero() {
             <VerdictCard verdict={toVerdict(veredicto.color)} placa={veredicto.placa} />
             {vehiculoCheck && (
               <VehicleCard
-                vehicle={{
-                  marca: descripcion.split(' ')[2] ?? '',
-                  modelo: descripcion.split(' ')[3] ?? '',
-                  color: descripcion.split(' ')[4] ?? '',
-                }}
+                vehicle={{ marca: vMarca, modelo: vModelo, color: vColor }}
                 match={vehicleMatch}
                 onMatch={setVehicleMatch}
               />

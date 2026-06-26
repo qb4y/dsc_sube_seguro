@@ -28,9 +28,10 @@ def score_soat(info: SoatInfo | None, fuente: str) -> Check:
                 detalle=f"SOAT vence en {days_left} días.",
                 fuente=fuente, consultado_en=ts,
             )
+    aseg = f" · {info.aseguradora}" if info.aseguradora else ""
     return Check(
         clave="soat", etiqueta="SOAT", color=Color.verde,
-        detalle="SOAT vigente.",
+        detalle=f"SOAT vigente{aseg}.",
         fuente=fuente, consultado_en=ts,
     )
 
@@ -43,7 +44,8 @@ def score_vehiculo(info: VehiculoInfo | None, placa: str, fuente: str) -> Check:
             detalle="No pudimos consultar los datos del vehículo.",
             fuente=fuente, consultado_en=ts,
         )
-    desc = f"{info.marca or '?'} {info.modelo or '?'}, color {info.color or '?'}."
+    # Pipe-separated so frontend can parse reliably without word-position guessing
+    desc = f"{info.marca or '?'}|{info.modelo or '?'}|{info.color or '?'}"
     return Check(
         clave="vehiculo", etiqueta="Vehículo", color=Color.verde,
         detalle=desc, fuente=fuente, consultado_en=ts,
