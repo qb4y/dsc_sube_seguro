@@ -19,16 +19,19 @@ import { EmptyState } from '../src/components/EmptyState';
 import { verificarPasajero, verificarPorReportId, type Veredicto } from '../src/api/verificar';
 import { ocrPlaca } from '../src/api/ocr';
 import { guardarVerificacion } from '../src/lib/history';
+import { useLocalSearchParams } from 'expo-router';
 
 export default function Pasajero() {
   const insets = useSafeAreaInsets();
-  const [placa, setPlaca] = useState('');
+  const params = useLocalSearchParams<{ action?: string; placa?: string }>();
+  const [placa, setPlaca] = useState(params.placa ?? '');
   const [veredicto, setVeredicto] = useState<Veredicto | null>(null);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState('');
   const [vehicleMatch, setVehicleMatch] = useState<boolean | null>(null);
   const [qrScannerAbierto, setQrScannerAbierto] = useState(false);
   const [qrEscaneado, setQrEscaneado] = useState(false);
+  const [actionHandled, setActionHandled] = useState(false);
 
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
 
@@ -154,6 +157,23 @@ export default function Pasajero() {
       setCargando(false);
     }
   };
+
+  // Handle deep link / quick action params
+  useEffect(() => {
+    if (actionHandled || !params.action) return;
+    setActionHandled(true);
+    if (params.action === 'camera') {
+      // Small delay to let the screen mount
+      setTimeout(() => tomarFoto(), 400);
+    } else if (params.action === 'qr') {
+      setTimeout(() => abrirQrScanner(), 400);
+    }
+  }, [params.action, actionHandled]);
+
+  // Pre-fill plate from params
+  useEffect(() => {
+    if (params.placa) setPlaca(params.placa);
+  }, [params.placa]);
 
   const vehiculoCheck = veredicto?.checks.find((c) => c.clave === 'vehiculo' && c.color === 'verde');
   const [vMarca = '', vModelo = '', vColor = ''] = vehiculoCheck?.detalle.split('|') ?? [];

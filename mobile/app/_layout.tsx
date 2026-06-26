@@ -1,11 +1,66 @@
-import { Tabs } from 'expo-router';
+import { useEffect } from 'react';
+import { Tabs, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { tokens } from '../src/lib/tokens';
+import * as QuickActions from 'expo-quick-actions';
 
 export default function Layout() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
+
+  // Set up quick actions (long press on app icon)
+  useEffect(() => {
+    QuickActions.setItems([
+      {
+        id: 'verificar_camara',
+        title: 'Escanear placa',
+        subtitle: 'Usar cámara para leer la placa',
+        icon: 'capturePhoto',
+      },
+      {
+        id: 'verificar_qr',
+        title: 'Escanear QR',
+        subtitle: 'Escanear QR del conductor',
+        icon: 'search',
+      },
+      {
+        id: 'verificar_manual',
+        title: 'Ingresar placa',
+        subtitle: 'Escribir la placa manualmente',
+        icon: 'compose',
+      },
+    ]);
+  }, []);
+
+  // Listen for quick action taps
+  useEffect(() => {
+    // Handle action that launched the app
+    if (QuickActions.initial) {
+      handleQuickAction(QuickActions.initial);
+    }
+
+    const sub = QuickActions.addListener((action) => {
+      handleQuickAction(action);
+    });
+
+    return () => sub.remove();
+  }, []);
+
+  function handleQuickAction(action: QuickActions.Action) {
+    switch (action.id) {
+      case 'verificar_camara':
+        router.push({ pathname: '/', params: { action: 'camera' } });
+        break;
+      case 'verificar_qr':
+        router.push({ pathname: '/', params: { action: 'qr' } });
+        break;
+      case 'verificar_manual':
+        router.push({ pathname: '/' });
+        break;
+    }
+  }
 
   return (
     <>
