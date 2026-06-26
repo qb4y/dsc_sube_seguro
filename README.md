@@ -114,7 +114,7 @@ EXPO_PUBLIC_API_URL=http://<tu-IP-LAN>:8000 npx expo start
 |-----------|--------------|
 | **Paulo** | Backend — FastAPI, servicios, integración json.pe, scoring |
 | **Josué** | Frontend — Expo, React Native, UI/UX, pantallas |
-| **Miguel** | IA — OCR (EasyOCR), análisis de contratos (Claude), visión computacional |
+| **Miguel** | Fullstack — arquitectura del proyecto, codebases, DevOps, despliegue y cloud |
 
 ---
 
