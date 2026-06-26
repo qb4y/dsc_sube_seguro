@@ -6,25 +6,62 @@ App mobile-first que, desde una **placa**, devuelve un veredicto 🟢/🟡/🔴 
 
 ## Visión general
 
-```
-┌─────────────────────────────┐         ┌──────────────────────────────────────────┐
-│        MOBILE (Expo)         │         │              BACKEND (FastAPI)             │
-│  React Native + TypeScript   │         │                                            │
-│                              │  HTTP   │  routers/  ── verificar · conductor · ocr  │
-│  app/   pasajero/comprador/  │ ──────▶ │     │                                      │
-│         conductor (tabs)     │  JSON   │  services/aggregator  (orquesta + cache)   │
-│  components/ Semaforo,       │ ◀────── │     │        │            │                │
-│    CheckList, CompartirViaje │         │  scoring   cache(TTL)   report(SHA-256)    │
-│  api/   client + verificar   │         │     │                                      │
-│  lib/   colores, whatsapp    │         │  clients/jsonpe (adapter)  scrapers/(BS4)  │
-└─────────────────────────────┘         └──────────────┬─────────────────────────────┘
-                                                        │
-                                          ┌─────────────┴──────────────┐
-                                          │  json.pe (Bearer)          │  ← PRINCIPAL
-                                          │   SOAT · placa · licencia  │
-                                          ├────────────────────────────┤
-                                          │  APESEG / MTC CITV (scrap) │  ← fallback
-                                          └────────────────────────────┘
+```mermaid
+graph TD
+    subgraph MOBILE["📱 Mobile — Expo (React Native + TypeScript)"]
+        UI_P[Pantalla Pasajero]
+        UI_C[Pantalla Comprador]
+        UI_D[Pantalla Conductor]
+        COMP_SEM[Semáforo]
+        COMP_CL[CheckList]
+        COMP_WA[Comparte tu viaje]
+        API_CLIENT[api/client.ts + verificar.ts]
+        LIB[lib/colores · lib/whatsapp]
+    end
+
+    subgraph BACKEND["⚙️ Backend — FastAPI (Python 3.11)"]
+        R_VER[router /verificar]
+        R_CON[router /conductor]
+        R_OCR[router /ocr]
+        AGG[services/aggregator]
+        SCORE[services/scoring]
+        CACHE[services/cache TTL]
+        REPORT[services/report SHA-256]
+        QR[services/qr]
+        OCR_SVC[services/ocr EasyOCR]
+        CONTRACT[services/contract Claude API]
+        JSONPE[clients/jsonpe adapter]
+        SC_APE[scrapers/apeseg]
+        SC_CITV[scrapers/citv]
+    end
+
+    subgraph ESTADO["🏛️ Estado Peruano"]
+        JSONPE_API[json.pe — SOAT · placa · licencia · DNI · RUC]
+        APESEG[APESEG — SOAT fallback]
+        MTC_CITV[MTC CITV — Rev. técnica fallback]
+    end
+
+    subgraph IA["🤖 IA"]
+        EASYOCR[EasyOCR — OCR placa]
+        CLAUDE[Claude API claude-sonnet-4-6]
+    end
+
+    UI_P & UI_C & UI_D --> API_CLIENT
+    API_CLIENT -->|HTTP POST JSON| R_VER & R_CON & R_OCR
+    R_VER & R_CON --> AGG
+    AGG --> SCORE & CACHE & REPORT & QR
+    AGG --> JSONPE
+    AGG --> SC_APE & SC_CITV
+    R_OCR --> OCR_SVC
+    R_VER --> CONTRACT
+    JSONPE -->|Bearer token| JSONPE_API
+    SC_APE --> APESEG
+    SC_CITV --> MTC_CITV
+    OCR_SVC --> EASYOCR
+    CONTRACT --> CLAUDE
+    R_VER & R_CON -->|Veredicto JSON| API_CLIENT
+    API_CLIENT --> COMP_SEM & COMP_CL
+    COMP_WA --> LIB
 ```
 
 El backend es un **proxy delgado**: guarda el token json.pe, normaliza, cachea por placa, calcula el veredicto. La app es un cliente delgado: captura, muestra, comparte.

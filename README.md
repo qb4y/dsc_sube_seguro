@@ -98,6 +98,26 @@ EXPO_PUBLIC_API_URL=http://<tu-IP-LAN>:8000 npx expo start
 
 ---
 
+## Modelos y herramientas de IA
+
+| Herramienta | Uso |
+|------------|-----|
+| **EasyOCR** | Leer número de placa desde foto (cámara o upload) |
+| **Claude API** (`claude-sonnet-4-6`) | Extraer datos de contratos y analizar cláusulas riesgosas |
+| **YOLOv8 / CLIP** *(Fase 3)* | Detectar color y tipo de vehículo en foto para comparar con registro MTC — detección de placa clonada |
+
+---
+
+## Equipo MACHAZ
+
+| Integrante | Rol principal |
+|-----------|--------------|
+| **Paulo** | Backend — FastAPI, servicios, integración json.pe, scoring |
+| **Josué** | Frontend — Expo, React Native, UI/UX, pantallas |
+| **Miguel** | IA — OCR (EasyOCR), análisis de contratos (Claude), visión computacional |
+
+---
+
 ## Documentación
 
 - [Arquitectura](docs/ARQUITECTURA.md)
